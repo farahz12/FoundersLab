@@ -33,7 +33,7 @@ interface Document { name: string; type: string; date: string; size: string; }
             Download All
           </button>
           <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-            style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px 16px;">
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucidePlus" [size]="'14'" />
             New Procedure
           </button>
@@ -42,14 +42,14 @@ interface Document { name: string; type: string; date: string; size: string; }
 
       <!-- Alert banner -->
       <div class="flex items-center gap-3 rounded-xl border px-5 py-4"
-        style="background:#FFFBEB; border-color:#FCD34D;">
+        style="background:var(--badge-amber-bg); border-color:var(--badge-amber-text);">
         <ng-icon name="lucideAlertCircle" [size]="'18'" style="color:var(--badge-amber-text); flex-shrink:0;" />
         <div class="flex-1">
           <p class="text-sm font-semibold" style="color:var(--badge-amber-text);">Action Required: Startup Label Renewal</p>
           <p class="text-xs mt-0.5" style="color:#B45309;">Your startup label expires on May 15, 2026. Submit renewal documents before April 30, 2026.</p>
         </div>
         <button class="text-xs font-semibold rounded-lg border cursor-pointer flex-shrink-0"
-          style="background:var(--surface); color:var(--badge-amber-text); border-color:#FCD34D; padding:5px 12px;">
+          style="background:var(--surface); color:var(--badge-amber-text); border-color:var(--badge-amber-text); padding:5px 12px;">
           Take Action
         </button>
       </div>
@@ -63,11 +63,11 @@ interface Document { name: string; type: string; date: string; size: string; }
           <div class="px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
             <div class="flex items-center justify-between">
               <h3 class="text-sm font-bold" style="color:var(--text-primary);">Company Registration Checklist</h3>
-              <span class="text-xs font-semibold" style="color:#7C3AED;">{{ completedCount }}/{{ steps.length }} done</span>
+              <span class="text-xs font-semibold" style="color:#1C4FC3;">{{ completedCount }}/{{ steps.length }} done</span>
             </div>
             <!-- Progress bar -->
             <div class="mt-3" style="height:6px; background:var(--surface-subtle); border-radius:99px; overflow:hidden;">
-              <div style="height:100%; border-radius:99px; background:linear-gradient(90deg,#7C3AED,#3B82F6); transition:width 0.4s;"
+              <div style="height:100%; border-radius:99px; background:linear-gradient(90deg,#1C4FC3,#1D1384); transition:width 0.4s;"
                 [style.width.%]="(completedCount / steps.length) * 100">
               </div>
             </div>
@@ -76,23 +76,23 @@ interface Document { name: string; type: string; date: string; size: string; }
             @for (step of steps; track step.label) {
               <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                 @if (step.done) {
-                  <ng-icon name="lucideCheckCircle" [size]="'18'" style="color:#059669; flex-shrink:0;" />
+                  <ng-icon name="lucideCheckCircle" [size]="'18'" style="color:var(--badge-green-text); flex-shrink:0;" />
                 } @else if (step.alert) {
                   <ng-icon name="lucideAlertCircle" [size]="'18'" style="color:var(--badge-amber-text); flex-shrink:0;" />
                 } @else {
                   <ng-icon name="lucideCircle" [size]="'18'" style="color:#D1D5DB; flex-shrink:0;" />
                 }
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm" [style.color]="step.done ? '#9CA3AF' : '#0B0F2A'"
+                  <p class="text-sm" [style.color]="step.done ? 'var(--text-muted)' : 'var(--text-primary)'"
                     [style.text-decoration]="step.done ? 'line-through' : 'none'">
                     {{ step.label }}
                   </p>
-                  <p class="text-xs mt-0.5" [style.color]="step.alert ? '#D97706' : '#9CA3AF'">
+                  <p class="text-xs mt-0.5" [style.color]="step.alert ? 'var(--badge-amber-text)' : 'var(--text-muted)'">
                     Due: {{ step.due }}
                   </p>
                 </div>
                 @if (!step.done) {
-                  <ng-icon name="lucideChevronRight" [size]="'14'" style="color:#D1D5DB; flex-shrink:0;" />
+                  <ng-icon name="lucideChevronRight" [size]="'14'" style="color:var(--border); flex-shrink:0;" />
                 }
               </div>
             }
@@ -107,7 +107,7 @@ interface Document { name: string; type: string; date: string; size: string; }
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
             <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
               <h3 class="text-sm font-bold" style="color:var(--text-primary);">Document Library</h3>
-              <button class="text-xs font-semibold flex items-center gap-1" style="color:#7C3AED; background:transparent; border:none; cursor:pointer;">
+              <button class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3; background:transparent; border:none; cursor:pointer;">
                 <ng-icon name="lucidePlus" [size]="'12'" /> Upload
               </button>
             </div>
@@ -115,8 +115,8 @@ interface Document { name: string; type: string; date: string; size: string; }
               @for (doc of documents; track doc.name) {
                 <div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <div class="flex items-center justify-center rounded-lg flex-shrink-0"
-                    style="width:34px; height:34px; background:#EDE9FE;">
-                    <ng-icon name="lucideFileText" [size]="'16'" style="color:#7C3AED;" />
+                    style="width:34px; height:34px; background:#DBEAFE;">
+                    <ng-icon name="lucideFileText" [size]="'16'" style="color:#1C4FC3;" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold truncate" style="color:var(--text-primary);">{{ doc.name }}</p>
@@ -146,16 +146,16 @@ interface Document { name: string; type: string; date: string; size: string; }
                 <div class="flex items-start gap-3 px-5 py-3">
                   <div class="flex items-center justify-center rounded-full flex-shrink-0 mt-0.5"
                     style="width:24px; height:24px;"
-                    [style.background]="alert.urgent ? '#FEF3C7' : '#EDE9FE'">
-                    <ng-icon name="lucideBell" [size]="'12'" [style.color]="alert.urgent ? '#D97706' : '#7C3AED'" />
+                    [style.background]="alert.urgent ? 'var(--badge-amber-bg)' : 'var(--badge-purple-bg)'">
+                    <ng-icon name="lucideBell" [size]="'12'" [style.color]="alert.urgent ? 'var(--badge-amber-text)' : 'var(--badge-purple-text)'" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold" style="color:var(--text-primary);">{{ alert.title }}</p>
                     <p class="text-xs mt-0.5" style="color:var(--text-muted);">{{ alert.date }}</p>
                   </div>
                   <span class="text-xs font-medium px-1.5 py-0.5 rounded flex-shrink-0"
-                    [style.background]="alert.urgent ? '#FEF3C7' : '#EDE9FE'"
-                    [style.color]="alert.urgent ? '#92400E' : '#7C3AED'">
+                    [style.background]="alert.urgent ? 'var(--badge-amber-bg)' : 'var(--badge-purple-bg)'"
+                    [style.color]="alert.urgent ? 'var(--badge-amber-text)' : 'var(--badge-purple-text)'">
                     {{ alert.urgent ? 'Urgent' : 'Info' }}
                   </span>
                 </div>

@@ -29,7 +29,7 @@ interface Opportunity { title: string; type: string; company: string; location: 
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Connect, share and grow with the ecosystem</p>
         </div>
         <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px 16px;">
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
           <ng-icon name="lucidePlus" [size]="'14'" />
           New Discussion
         </button>
@@ -59,9 +59,9 @@ interface Opportunity { title: string; type: string; company: string; location: 
                 <button
                   (click)="selectedCategory = cat"
                   class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
-                  [style.background]="selectedCategory === cat ? '#EDE9FE' : 'transparent'"
-                  [style.color]="selectedCategory === cat ? '#7C3AED' : '#9CA3AF'"
-                  [style.border-color]="selectedCategory === cat ? '#DDD6FE' : 'transparent'"
+                  [style.background]="selectedCategory === cat ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+                  [style.color]="selectedCategory === cat ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+                  [style.border-color]="selectedCategory === cat ? 'var(--chip-active-border)' : 'transparent'"
                   style="padding:3px 10px;">{{ cat }}</button>
               }
             </div>
@@ -76,7 +76,7 @@ interface Opportunity { title: string; type: string; company: string; location: 
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
-                    <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background:var(--badge-purple-bg); color:#7C3AED;">{{ f.category }}</span>
+                    <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background:var(--badge-purple-bg); color:#1C4FC3;">{{ f.category }}</span>
                     <span class="text-xs" style="color:var(--text-muted);">{{ f.time }}</span>
                   </div>
                   <h4 class="text-sm font-semibold truncate" style="color:var(--text-primary);">{{ f.title }}</h4>
@@ -138,8 +138,8 @@ interface Opportunity { title: string; type: string; company: string; location: 
                 <div class="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                   <div class="flex items-center gap-1.5 mb-1">
                     <span class="text-xs font-medium px-1.5 py-0.5 rounded"
-                      [style.background]="o.type === 'Job' ? '#DBEAFE' : o.type === 'Internship' ? '#D1FAE5' : '#EDE9FE'"
-                      [style.color]="o.type === 'Job' ? '#1E40AF' : o.type === 'Internship' ? '#065F46' : '#7C3AED'">
+                      [style.background]="o.type === 'Job' ? 'var(--badge-blue-bg)' : o.type === 'Internship' ? 'var(--badge-green-bg)' : 'var(--badge-purple-bg)'"
+                      [style.color]="o.type === 'Job' ? 'var(--badge-blue-text)' : o.type === 'Internship' ? 'var(--badge-green-text)' : 'var(--badge-purple-text)'">
                       {{ o.type }}
                     </span>
                     <span class="text-xs" style="color:var(--text-muted);">{{ o.tag }}</span>
@@ -172,16 +172,16 @@ export class CommunityComponent {
   ];
 
   protected readonly forums: Forum[] = [
-    { title: 'How to structure your first angel round?',        category: 'FinTech',   replies: 24, views: 312, author: 'Karim B.',   initials: 'KB', color: '#7C3AED', time: '2h ago'  },
+    { title: 'How to structure your first angel round?',        category: 'FinTech',   replies: 24, views: 312, author: 'Karim B.',   initials: 'KB', color: '#1C4FC3', time: '2h ago'  },
     { title: 'Best practices for solar project permitting in DZ', category: 'CleanTech', replies: 11, views: 178, author: 'Amira T.',   initials: 'AT', color: '#059669', time: '5h ago'  },
     { title: 'Adaptive learning vs. gamification for retention', category: 'EdTech',    replies: 18, views: 240, author: 'Nadia C.',   initials: 'NC', color: '#EC4899', time: '1d ago'  },
-    { title: 'Tips for navigating the startup label process',     category: 'All',       replies: 32, views: 445, author: 'Riad F.',    initials: 'RF', color: '#3B82F6', time: '2d ago'  },
+    { title: 'Tips for navigating the startup label process',     category: 'All',       replies: 32, views: 445, author: 'Riad F.',    initials: 'RF', color: '#1D1384', time: '2d ago'  },
     { title: 'Cybersecurity fundamentals for non-tech founders', category: 'All',       replies: 9,  views: 130, author: 'Meriem B.',  initials: 'MB', color: '#0891B2', time: '3d ago'  },
   ];
 
   protected readonly topMembers: Member[] = [
-    { name: 'Sarah Chen',        role: 'Investment Advisor', company: 'NA Ventures', initials: 'SC', color: '#7C3AED', rating: 4.9 },
-    { name: 'Ahmed Belkacemi',   role: 'Tech Strategist',    company: 'TechHub DZ',  initials: 'AB', color: '#3B82F6', rating: 4.8 },
+    { name: 'Sarah Chen',        role: 'Investment Advisor', company: 'NA Ventures', initials: 'SC', color: '#1C4FC3', rating: 4.9 },
+    { name: 'Ahmed Belkacemi',   role: 'Tech Strategist',    company: 'TechHub DZ',  initials: 'AB', color: '#1D1384', rating: 4.8 },
     { name: 'Marie Leclerc',     role: 'Legal Consultant',   company: 'LexAfrica',   initials: 'ML', color: '#059669', rating: 4.7 },
     { name: 'Omar Ladraa',       role: 'Startup Founder',    company: 'LogiTrack',   initials: 'OL', color: '#D97706', rating: 4.6 },
   ];

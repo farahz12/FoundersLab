@@ -35,7 +35,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
         </div>
         <a routerLink="/projects"
           class="flex items-center gap-1.5 text-xs font-semibold rounded-lg transition-all hover:shadow-md"
-          style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px 16px;">
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
           <ng-icon name="lucideRocket" [size]="'14'" />
           New Project
         </a>
@@ -57,7 +57,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
             <div class="flex items-end gap-2">
               <span class="text-2xl font-bold" style="color:var(--text-primary); letter-spacing:-0.03em;">{{ stat.value }}</span>
               <span class="text-xs font-medium mb-0.5 flex items-center gap-0.5"
-                [style.color]="stat.up ? '#059669' : '#DC2626'">
+                [style.color]="stat.up ? 'var(--badge-green-text)' : 'var(--badge-red-text)'">
                 <ng-icon name="lucideArrowUp" [size]="'11'" [style.transform]="stat.up ? '' : 'rotate(180deg)'" />
                 {{ stat.delta }}
               </span>
@@ -74,7 +74,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
           style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
           <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
             <h3 class="text-sm font-bold" style="color:var(--text-primary);">Recent Startups</h3>
-            <a routerLink="/projects" class="text-xs font-semibold flex items-center gap-1" style="color:#7C3AED;">
+            <a routerLink="/projects" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
               View all <ng-icon name="lucideArrowRight" [size]="'12'" />
             </a>
           </div>
@@ -106,21 +106,21 @@ interface Activity { user: string; action: string; time: string; initials: strin
                     <td class="px-3 py-3 text-xs" style="color:var(--text-secondary); font-weight:500;">{{ s.stage }}</td>
                     <td class="px-3 py-3">
                       <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold" [style.color]="s.score >= 80 ? '#059669' : s.score >= 65 ? '#D97706' : '#DC2626'">
+                        <span class="text-xs font-bold" [style.color]="s.score >= 80 ? 'var(--badge-green-text)' : s.score >= 65 ? 'var(--badge-amber-text)' : 'var(--badge-red-text)'">
                           {{ s.score }}
                         </span>
                         <div style="width:40px; height:4px; background:var(--surface-subtle); border-radius:99px; overflow:hidden;">
                           <div style="height:100%; border-radius:99px; transition:width 0.3s;"
                             [style.width.%]="s.score"
-                            [style.background]="s.score >= 80 ? '#059669' : s.score >= 65 ? '#D97706' : '#DC2626'">
+                            [style.background]="s.score >= 80 ? 'var(--badge-green-text)' : s.score >= 65 ? 'var(--badge-amber-text)' : 'var(--badge-red-text)'">
                           </div>
                         </div>
                       </div>
                     </td>
                     <td class="px-3 py-3">
                       <span class="text-xs font-medium px-2 py-0.5 rounded-full"
-                        [style.background]="s.status === 'Active' ? 'var(--badge-green-bg)' : s.status === 'Review' ? 'var(--badge-amber-bg)' : '#DBEAFE'"
-                        [style.color]="s.status === 'Active' ? 'var(--badge-green-text)' : s.status === 'Review' ? 'var(--badge-amber-text)' : '#1E40AF'">
+                        [style.background]="s.status === 'Active' ? 'var(--badge-green-bg)' : s.status === 'Review' ? 'var(--badge-amber-bg)' : 'var(--badge-blue-bg)'"
+                        [style.color]="s.status === 'Active' ? 'var(--badge-green-text)' : s.status === 'Review' ? 'var(--badge-amber-text)' : 'var(--badge-blue-text)'">
                         {{ s.status }}
                       </span>
                     </td>
@@ -139,7 +139,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
             <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
               <h3 class="text-sm font-bold" style="color:var(--text-primary);">Upcoming Events</h3>
-              <a routerLink="/events" class="text-xs font-semibold flex items-center gap-1" style="color:#7C3AED;">
+              <a routerLink="/events" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
                 View all <ng-icon name="lucideArrowRight" [size]="'12'" />
               </a>
             </div>
@@ -197,10 +197,10 @@ interface Activity { user: string; action: string; time: string; initials: strin
 })
 export class HomeComponent {
   protected readonly stats: Stat[] = [
-    { label: 'Total Startups',       value: '48',  delta: '+3 this month', up: true,  icon: 'lucideRocket',      color: '#7C3AED', bg: '#EDE9FE' },
-    { label: 'Active Mentors',        value: '127', delta: '+8 this month', up: true,  icon: 'lucideUsers',       color: '#3B82F6', bg: '#DBEAFE' },
-    { label: 'Investments Matched',   value: '23',  delta: '+2 this week',  up: true,  icon: 'lucideTrendingUp',  color: '#059669', bg: '#D1FAE5' },
-    { label: 'Events This Month',     value: '12',  delta: '-1 vs last',    up: false, icon: 'lucideCalendar',    color: '#D97706', bg: '#FEF3C7' },
+    { label: 'Total Startups',       value: '48',  delta: '+3 this month', up: true,  icon: 'lucideRocket',      color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
+    { label: 'Active Mentors',        value: '127', delta: '+8 this month', up: true,  icon: 'lucideUsers',       color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
+    { label: 'Investments Matched',   value: '23',  delta: '+2 this week',  up: true,  icon: 'lucideTrendingUp',  color: 'var(--badge-green-text)',  bg: 'var(--badge-green-bg)'  },
+    { label: 'Events This Month',     value: '12',  delta: '-1 vs last',    up: false, icon: 'lucideCalendar',    color: 'var(--badge-amber-text)',  bg: 'var(--badge-amber-bg)'  },
   ];
 
   protected readonly startups: Startup[] = [
@@ -219,9 +219,9 @@ export class HomeComponent {
   ];
 
   protected readonly activity: Activity[] = [
-    { user: 'Karim B.',  action: 'submitted a new project update for TechFlow.',   time: '2 min ago',  initials: 'KB', color: '#7C3AED' },
-    { user: 'Sarah C.',  action: 'scheduled a mentoring session with EduHub.',     time: '18 min ago', initials: 'SC', color: '#3B82F6' },
-    { user: 'NaVentures',action: 'expressed interest in MedConnect.',              time: '1h ago',     initials: 'NV', color: '#059669' },
+    { user: 'Karim B.',  action: 'submitted a new project update for TechFlow.',   time: '2 min ago',  initials: 'KB', color: '#1C4FC3' },
+    { user: 'Sarah C.',  action: 'scheduled a mentoring session with EduHub.',     time: '18 min ago', initials: 'SC', color: '#1D1384' },
+    { user: 'Na Ventures',action: 'expressed interest in MedConnect.',             time: '1h ago',     initials: 'NV', color: '#059669' },
     { user: 'Amira T.',  action: 'posted in the CleanTech community forum.',       time: '3h ago',     initials: 'AT', color: '#D97706' },
   ];
 }

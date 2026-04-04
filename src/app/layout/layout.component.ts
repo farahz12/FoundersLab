@@ -40,7 +40,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
         class="sidebar-nav fixed inset-y-0 left-0 z-30 flex flex-col"
         [style.width]="sidebarExpanded() ? '220px' : '60px'"
         [style.box-shadow]="sidebarExpanded() ? '4px 0 28px rgba(0,0,0,0.32)' : 'none'"
-        style="background:#0B0F2A; border-right:1px solid rgba(255,255,255,0.07);"
+        style="background:#1F2937; border-right:1px solid rgba(255,255,255,0.07);"
         aria-label="Main navigation"
         (mouseenter)="sidebarExpanded.set(true)"
         (mouseleave)="sidebarExpanded.set(false)"
@@ -110,7 +110,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
             aria-label="Open profile"
           >
             <div class="flex items-center justify-center rounded-full"
-              style="width:36px; height:36px; flex-shrink:0; background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; font-size:12px; font-weight:700;">
+              style="width:36px; height:36px; flex-shrink:0; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:12px; font-weight:700;">
               MS
             </div>
             <div class="sidebar-label ml-2.5 text-left"
@@ -174,7 +174,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
             aria-label="Open profile"
           >
             <div class="flex items-center justify-center rounded-full flex-shrink-0"
-              style="width:32px; height:32px; background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; font-size:11px; font-weight:700;">
+              style="width:32px; height:32px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:11px; font-weight:700;">
               MS
             </div>
             <div class="hidden md:block text-left">
@@ -209,7 +209,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
               <p class="text-xs" style="color:var(--text-muted);">{{ unreadCount() }} unread</p>
             </div>
             <div class="flex items-center gap-2">
-              <button (click)="markAllRead()" class="text-xs font-semibold" style="color:#7C3AED; background:transparent; border:none; cursor:pointer;">
+              <button (click)="markAllRead()" class="text-xs font-semibold" style="color:#1C4FC3; background:transparent; border:none; cursor:pointer;">
                 Mark all read
               </button>
               <button (click)="showNotifications.set(false)"
@@ -245,7 +245,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   <p class="text-xs mt-1" style="color:var(--text-muted);">{{ n.time }}</p>
                 </div>
                 @if (!n.read) {
-                  <div class="flex-shrink-0 rounded-full mt-1.5" style="width:7px; height:7px; background:#7C3AED;"></div>
+                  <div class="flex-shrink-0 rounded-full mt-1.5" style="width:7px; height:7px; background:#1C4FC3;"></div>
                 }
               </div>
             }
@@ -253,7 +253,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
           <!-- Footer -->
           <div class="px-5 py-3 text-center" style="border-top:1px solid var(--border-subtle);">
-            <button class="text-xs font-semibold" style="color:#7C3AED; background:transparent; border:none; cursor:pointer;">
+            <button class="text-xs font-semibold" style="color:#1C4FC3; background:transparent; border:none; cursor:pointer;">
               View all notifications
             </button>
           </div>
@@ -270,23 +270,23 @@ interface Notification { id: number; title: string; body: string; time: string; 
           <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:380px; max-width:92vw; box-shadow:0 24px 64px rgba(0,0,0,0.28);">
 
             <!-- Profile header gradient -->
-            <div class="relative" style="background:linear-gradient(135deg,#0B0F2A 0%,#1E1B4B 60%,#312E81 100%); padding:32px 24px 24px; text-align:center;">
+            <div class="relative" style="background:linear-gradient(135deg,#1F2937 0%,#1D1384 60%,#1D1384 100%); padding:32px 24px 24px; text-align:center;">
               <button
                 (click)="showProfile.set(false)"
                 class="absolute flex items-center justify-center rounded-lg transition-colors hover:bg-white dark:bg-gray-900/10"
-                style="top:16px; right:16px; width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:#A5B4FC;"
+                style="top:16px; right:16px; width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:#93C5FD;"
                 aria-label="Close profile"
               >
                 <ng-icon name="lucideX" [size]="'16'" />
               </button>
               <div class="flex items-center justify-center rounded-full mx-auto mb-3"
-                style="width:72px; height:72px; background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; font-size:22px; font-weight:800; border:3px solid rgba(255,255,255,0.15);">
+                style="width:72px; height:72px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:22px; font-weight:800; border:3px solid rgba(255,255,255,0.15);">
                 MS
               </div>
               <h2 style="color:#fff; font-size:18px; font-weight:700; letter-spacing:-0.02em; margin:0 0 4px;">Mohamed Slimane</h2>
               <p style="color:rgb(229 231 235); font-size:13px; margin:0;">Founder · FoundersLab</p>
               <span class="inline-flex items-center gap-1 mt-3 px-3 py-1 rounded-full text-xs font-semibold"
-                style="background:rgba(108,62,255,0.25); color:#C4B5FD;">
+                style="background:rgba(108,62,255,0.25); color:#93C5FD;">
                 <ng-icon name="lucideStar" [size]="'11'" />
                 Premium Plan
               </span>
@@ -296,21 +296,21 @@ interface Notification { id: number; title: string; body: string; time: string; 
             <div style="padding:20px 24px;">
               <div class="space-y-3">
                 <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
-                  <ng-icon name="lucideMail" [size]="'15'" style="color:#7C3AED; flex-shrink:0;" />
+                  <ng-icon name="lucideMail" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
                   <div>
                     <p class="text-xs" style="color:var(--text-muted);">Email</p>
                     <p class="text-sm font-medium" style="color:var(--text-primary);">slimane&#64;founderslab.io</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
-                  <ng-icon name="lucideBriefcase" [size]="'15'" style="color:#7C3AED; flex-shrink:0;" />
+                  <ng-icon name="lucideBriefcase" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
                   <div>
                     <p class="text-xs" style="color:var(--text-muted);">Role</p>
                     <p class="text-sm font-medium" style="color:var(--text-primary);">Founder &amp; Admin</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
-                  <ng-icon name="lucideGlobe" [size]="'15'" style="color:#7C3AED; flex-shrink:0;" />
+                  <ng-icon name="lucideGlobe" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
                   <div>
                     <p class="text-xs" style="color:var(--text-muted);">Member since</p>
                     <p class="text-sm font-medium" style="color:var(--text-primary);">January 2026</p>
@@ -322,14 +322,14 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 <button
                   (click)="showProfile.set(false)"
                   class="flex items-center justify-center gap-1.5 rounded-xl flex-1 text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"
-                  style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; border:none; padding:10px;">
+                  style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:10px;">
                   <ng-icon name="lucideEdit" [size]="'14'" />
                   Edit Profile
                 </button>
                 <button
                   (click)="showProfile.set(false)"
                   class="flex items-center justify-center gap-1.5 rounded-xl text-sm font-semibold cursor-pointer transition-colors hover:bg-red-50 dark:hover:bg-gray-800"
-                  style="background:#FEF2F2; color:#DC2626; border:none; padding:10px 16px;">
+                  style="background:#FEF2F2; color:var(--badge-red-text); border:none; padding:10px 16px;">
                   <ng-icon name="lucideLogOut" [size]="'14'" />
                   Sign out
                 </button>
@@ -369,7 +369,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 <!-- Appearance -->
                 <div>
                   <div class="flex items-center gap-2 mb-3">
-                    <ng-icon name="lucideSun" [size]="'15'" style="color:#7C3AED;" />
+                    <ng-icon name="lucideSun" [size]="'15'" style="color:#1C4FC3;" />
                     <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Appearance</h3>
                   </div>
                   <div class="grid grid-cols-3 gap-2">
@@ -378,10 +378,10 @@ interface Notification { id: number; title: string; body: string; time: string; 
                         (click)="themeService.theme.set(theme.id)"
                         class="rounded-xl border-2 p-3 cursor-pointer text-center transition-all"
                         style="background:var(--surface-subtle); font-family:var(--font-sans);"
-                        [style.border-color]="themeService.theme() === theme.id ? '#7C3AED' : 'var(--border)'"
+                        [style.border-color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--border)'"
                       >
                         <ng-icon [name]="theme.icon" [size]="'18'" style="display:block; margin:0 auto 4px;"></ng-icon>
-                        <p class="text-xs font-medium" [style.color]="themeService.theme() === theme.id ? '#7C3AED' : 'var(--text-body)'">
+                        <p class="text-xs font-medium" [style.color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--text-body)'">
                           {{ theme.label }}
                         </p>
                       </button>
@@ -392,7 +392,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 <!-- Notifications -->
                 <div>
                   <div class="flex items-center gap-2 mb-3">
-                    <ng-icon name="lucideBell" [size]="'15'" style="color:#7C3AED;" />
+                    <ng-icon name="lucideBell" [size]="'15'" style="color:#1C4FC3;" />
                     <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Notifications</h3>
                   </div>
                   <div class="space-y-2">
@@ -406,7 +406,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                           (click)="pref.enabled = !pref.enabled"
                           class="relative rounded-full transition-colors flex-shrink-0"
                           style="width:40px; height:22px; border:none; cursor:pointer;"
-                          [style.background]="pref.enabled ? '#7C3AED' : '#D1D5DB'"
+                          [style.background]="pref.enabled ? '#1C4FC3' : '#D1D5DB'"
                           [attr.aria-checked]="pref.enabled"
                           role="switch"
                           [attr.aria-label]="pref.label"
@@ -424,7 +424,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 <!-- Security -->
                 <div>
                   <div class="flex items-center gap-2 mb-3">
-                    <ng-icon name="lucideShield" [size]="'15'" style="color:#7C3AED;" />
+                    <ng-icon name="lucideShield" [size]="'15'" style="color:#1C4FC3;" />
                     <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Security</h3>
                   </div>
                   <div class="space-y-2">
@@ -458,7 +458,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
               </button>
               <button (click)="showSettings.set(false)"
                 class="text-sm font-semibold rounded-xl cursor-pointer transition-opacity hover:opacity-90"
-                style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; border:none; padding:8px 20px;">
+                style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">
                 Save changes
               </button>
             </div>

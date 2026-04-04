@@ -11,55 +11,68 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --radius: 0.625rem;
-  --background: oklch(0.975 0.006 270);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.44 0.22 293);
+  --background: #F9FAFB;
+  --foreground: #1F2937;
+  --card: #ffffff;
+  --card-foreground: #1F2937;
+  --popover: #ffffff;
+  --popover-foreground: #1F2937;
+  --primary: oklch(0.42 0.17 252);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0.008 270);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0.005 270);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.94 0.03 270);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.97 0.005 240);
+  --secondary-foreground: #364153;
+  --muted: #F3F4F6;
+  --muted-foreground: #364153;
+  --accent: #DBEAFE;
+  --accent-foreground: #1C4FC3;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.01 270);
-  --input: oklch(0.91 0.01 270);
-  --ring: oklch(0.44 0.22 293);
-  --sidebar: oklch(0.10 0.05 275);
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: oklch(0.42 0.17 252);
+  --sidebar: oklch(0.17 0.02 240);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.44 0.22 293);
+  --sidebar-primary: oklch(0.42 0.17 252);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.44 0.22 293 / 0.25);
+  --sidebar-accent: oklch(0.42 0.17 252 / 0.25);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 0.07);
-  --sidebar-ring: oklch(0.44 0.22 293);
+  --sidebar-ring: oklch(0.42 0.17 252);
 
   /* Semantic color tokens (light mode) */
-  --text-primary: #0B0F2A;
-  --text-secondary: #6B7A99;
-  --text-muted: #9CA3AF;
-  --text-body: #374151;
-  --surface: #fff;
+  --text-primary: #1F2937;
+  --text-secondary: #364153;
+  --text-muted: #6B7280;
+  --text-body: #364153;
+  --surface: #ffffff;
   --surface-subtle: #F9FAFB;
-  --surface-input: #F5F6FA;
-  --surface-accent: #FAFBFF;
+  --surface-input: #F3F4F6;
+  --surface-accent: #F9FAFB;
   --border-subtle: #F3F4F6;
 
   /* Badge color tokens (light mode) */
-  --badge-purple-bg: #EDE9FE;
-  --badge-purple-text: #6D28D9;
+  --badge-purple-bg: #DBEAFE;
+  --badge-purple-text: #1C4FC3;
+  --badge-purple-border: #BFDBFE;
   --badge-green-bg: #D1FAE5;
   --badge-green-text: #065F46;
   --badge-amber-bg: #FEF3C7;
   --badge-amber-text: #D97706;
   --badge-red-bg: #FEE2E2;
   --badge-red-text: #991B1B;
+  --badge-blue-bg: #DBEAFE;
+  --badge-blue-text: #1C4FC3;
+  --badge-neutral-bg: #F3F4F6;
+  --badge-neutral-text: #364153;
   --badge-notification-bg: #EF4444;
   --badge-notification-text: #fff;
+
+  /* Filter chip tokens */
+  --chip-active-bg: #DBEAFE;
+  --chip-active-text: #1C4FC3;
+  --chip-active-border: #BFDBFE;
+  --chip-inactive-bg: transparent;
+  --chip-inactive-text: #6B7280;
+  --chip-inactive-border: #E5E7EB;
 }
 
 @layer base {
@@ -102,7 +115,7 @@
 }
 
 .nav-item.active-nav .nav-icon-wrapper {
-  background: rgba(108, 62, 255, 0.30) !important;
+  background: rgba(28, 79, 195, 0.30) !important;
   color: #fff !important;
 }
 
@@ -114,7 +127,7 @@
   transform: translateY(-50%);
   width: 3px;
   height: 22px;
-  background: linear-gradient(180deg, #7C3AED, #3B82F6);
+  background: linear-gradient(180deg, #1C4FC3, #1D1384);
   border-radius: 0 2px 2px 0;
 }
 
@@ -164,16 +177,29 @@
   --border-subtle: oklch(0.28 0.015 270);
 
   /* Badge colors (dark mode) */
-  --badge-purple-bg: #3E3B52;
-  --badge-purple-text: #D8B4FE;
+  --badge-purple-bg: #1E3A5F;
+  --badge-purple-text: #93C5FD;
+  --badge-purple-border: #1E40AF;
   --badge-green-bg: #064E3B;
   --badge-green-text: #86EFAC;
   --badge-amber-bg: #78350F;
   --badge-amber-text: #FDE047;
   --badge-red-bg: #7C2D12;
   --badge-red-text: #FECACA;
+  --badge-blue-bg: #1E3A5F;
+  --badge-blue-text: #93C5FD;
+  --badge-neutral-bg: oklch(0.27 0.015 240);
+  --badge-neutral-text: oklch(0.60 0.015 240);
   --badge-notification-bg: #DC2626;
   --badge-notification-text: #fff;
+
+  /* Filter chip tokens (dark mode) */
+  --chip-active-bg: #1E3A5F;
+  --chip-active-text: #93C5FD;
+  --chip-active-border: #1E40AF;
+  --chip-inactive-bg: transparent;
+  --chip-inactive-text: oklch(0.53 0.010 240);
+  --chip-inactive-border: oklch(0.30 0.012 240);
 }
 
 /* Custom scrollbar */

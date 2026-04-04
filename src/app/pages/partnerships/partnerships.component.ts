@@ -39,7 +39,7 @@ interface Partner {
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage institutional partnerships and conventions</p>
         </div>
         <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px 16px;">
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
           <ng-icon name="lucidePlus" [size]="'14'" />
           Add Partner
         </button>
@@ -52,7 +52,7 @@ interface Partner {
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
             <div class="flex items-center justify-between mb-1">
               <p class="text-xs font-medium" style="color:var(--text-secondary);">{{ s.label }}</p>
-              <div class="flex items-center gap-0.5 text-xs" style="color:#059669;">
+              <div class="flex items-center gap-0.5 text-xs" style="color:var(--badge-green-text);">
                 <ng-icon name="lucideArrowUp" [size]="'10'" />
                 {{ s.delta }}
               </div>
@@ -84,8 +84,8 @@ interface Partner {
                   </div>
                 </div>
                 <span class="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
-                  [style.background]="p.status === 'Active' ? '#D1FAE5' : p.status === 'Pending' ? '#FEF3C7' : '#FEE2E2'"
-                  [style.color]="p.status === 'Active' ? '#065F46' : p.status === 'Pending' ? '#92400E' : '#991B1B'">
+                  [style.background]="p.status === 'Active' ? 'var(--badge-green-bg)' : p.status === 'Pending' ? 'var(--badge-amber-bg)' : 'var(--badge-red-bg)'"
+                  [style.color]="p.status === 'Active' ? 'var(--badge-green-text)' : p.status === 'Pending' ? 'var(--badge-amber-text)' : 'var(--badge-red-text)'">
                   {{ p.status }}
                 </span>
               </div>
@@ -109,7 +109,7 @@ interface Partner {
               <div class="flex flex-col gap-1">
                 @for (benefit of p.benefits; track benefit) {
                   <div class="flex items-center gap-1.5">
-                    <ng-icon name="lucideCheck" [size]="'11'" style="color:#059669; flex-shrink:0;" />
+                    <ng-icon name="lucideCheck" [size]="'11'" style="color:var(--badge-green-text); flex-shrink:0;" />
                     <span class="text-xs" style="color:var(--text-body);">{{ benefit }}</span>
                   </div>
                 }
@@ -129,13 +129,13 @@ interface Partner {
                 </button>
                 @if (p.status !== 'Active') {
                   <button class="flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-gray-800 transition-colors"
-                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:#059669;"
+                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--badge-green-text);"
                     [attr.aria-label]="'Renew partnership with ' + p.name">
                     <ng-icon name="lucideRefreshCw" [size]="'13'" />
                   </button>
                 }
                 <button class="flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors"
-                  style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:#7C3AED;"
+                  style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:#1C4FC3;"
                   [attr.aria-label]="'View partnership details with ' + p.name">
                   <ng-icon name="lucideExternalLink" [size]="'13'" />
                 </button>
@@ -159,13 +159,13 @@ export class PartnershipsComponent {
     {
       name: 'University of Algiers', type: 'University', country: 'Algeria', status: 'Active',
       since: 'Sep 2024', expires: 'Sep 2026', students: 320, startups: 12,
-      initials: 'UA', color: '#7C3AED',
+      initials: 'UA', color: '#1C4FC3',
       benefits: ['Access to innovation lab', 'Startup bootcamp programs', 'Co-mentoring with professors'],
     },
     {
       name: 'ITIC Incubator', type: 'Incubator', country: 'Algeria', status: 'Active',
       since: 'Jan 2025', expires: 'Jan 2027', students: 0, startups: 18,
-      initials: 'IT', color: '#3B82F6',
+      initials: 'IT', color: '#1D1384',
       benefits: ['Co-working space access', 'Joint pitch events', 'Shared investor network'],
     },
     {

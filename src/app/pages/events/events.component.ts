@@ -39,7 +39,7 @@ interface Event {
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage webinars, workshops, pitch sessions &amp; more</p>
         </div>
         <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer transition-opacity hover:opacity-90"
-          style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px 16px;">
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
           <ng-icon name="lucidePlus" [size]="'14'" />
           Create Event
         </button>
@@ -72,9 +72,9 @@ interface Event {
           @for (f of typeFilters; track f) {
             <button (click)="typeFilter.set(f)"
               class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
-              [style.background]="typeFilter() === f ? '#EDE9FE' : '#fff'"
-              [style.color]="typeFilter() === f ? '#7C3AED' : '#6B7A99'"
-              [style.border-color]="typeFilter() === f ? '#DDD6FE' : '#E5E9F5'"
+              [style.background]="typeFilter() === f ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+              [style.color]="typeFilter() === f ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+              [style.border-color]="typeFilter() === f ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'"
               style="padding:5px 12px;">{{ f }}</button>
           }
         </div>
@@ -82,9 +82,9 @@ interface Event {
           @for (v of ['grid', 'list']; track v) {
             <button (click)="viewMode.set(v)"
               class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
-              [style.background]="viewMode() === v ? '#EDE9FE' : '#fff'"
-              [style.color]="viewMode() === v ? '#7C3AED' : '#6B7A99'"
-              [style.border-color]="viewMode() === v ? '#DDD6FE' : '#E5E9F5'"
+              [style.background]="viewMode() === v ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+              [style.color]="viewMode() === v ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+              [style.border-color]="viewMode() === v ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'"
               style="padding:5px 12px;">
               {{ v === 'grid' ? '⊞ Grid' : '☰ List' }}
             </button>
@@ -164,14 +164,14 @@ interface Event {
                       {{ event.registered }} / {{ event.capacity }} registered
                     </div>
                     <span class="text-xs font-semibold"
-                      [style.color]="(event.registered/event.capacity) > 0.85 ? '#059669' : '#7C3AED'">
+                      [style.color]="(event.registered/event.capacity) > 0.85 ? '#059669' : '#1C4FC3'">
                       {{ Math.round((event.registered/event.capacity)*100) }}%
                     </span>
                   </div>
                   <div style="height:4px; background:var(--surface-subtle); border-radius:99px; overflow:hidden;">
                     <div style="height:100%; border-radius:99px; transition:width 0.4s;"
                       [style.width.%]="(event.registered/event.capacity)*100"
-                      [style.background]="(event.registered/event.capacity) > 0.85 ? 'linear-gradient(90deg,#059669,#34D399)' : 'linear-gradient(90deg,#7C3AED,#3B82F6)'">
+                      [style.background]="(event.registered/event.capacity) > 0.85 ? 'linear-gradient(90deg,#059669,#34D399)' : 'linear-gradient(90deg,#1C4FC3,#1D1384)'">
                     </div>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ interface Event {
                 <div class="flex items-center gap-2">
                   @if (event.status === 'Upcoming') {
                     <button class="flex-1 text-xs font-semibold rounded-xl border-none cursor-pointer transition-opacity hover:opacity-90"
-                      style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px;">
+                      style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px;">
                       Register Now
                     </button>
                   } @else {
@@ -228,10 +228,10 @@ interface Event {
 
               <!-- Date column -->
               <div class="flex flex-col items-center justify-center flex-shrink-0"
-                style="width:72px; background:linear-gradient(135deg,#0B0F2A,#1E1B4B); padding:16px 8px;">
-                <span class="text-xs font-semibold" style="color:#A5B4FC;">{{ event.date.split(' ')[0] }}</span>
+                style="width:72px; background:linear-gradient(135deg,#1F2937,#1D1384); padding:16px 8px;">
+                <span class="text-xs font-semibold" style="color:#93C5FD;">{{ event.date.split(' ')[0] }}</span>
                 <span class="text-xl font-bold leading-none" style="color:#fff;">{{ event.date.split(' ')[1] }}</span>
-                <span class="text-xs" style="color:#A5B4FC;">{{ event.date.split(' ')[2] }}</span>
+                <span class="text-xs" style="color:#93C5FD;">{{ event.date.split(' ')[2] }}</span>
               </div>
 
               <!-- Content -->
@@ -263,7 +263,7 @@ interface Event {
                   </div>
                   @if (event.status === 'Upcoming') {
                     <button class="text-xs font-semibold rounded-lg border-none cursor-pointer flex-shrink-0"
-                      style="background:var(--badge-purple-bg); color:#7C3AED; padding:7px 14px;">Register</button>
+                      style="background:var(--badge-purple-bg); color:#1C4FC3; padding:7px 14px;">Register</button>
                   }
                 </div>
               </div>
@@ -309,19 +309,19 @@ export class EventsComponent {
   ];
 
   protected typeBg(type: string): string {
-    const m: Record<string, string> = { Pitch: '#EDE9FE', Workshop: '#DBEAFE', Webinar: '#D1FAE5', Bootcamp: '#FEF3C7', Conference: '#FCE7F3' };
-    return m[type] ?? '#F3F4F6';
+    const m: Record<string, string> = { Pitch: 'var(--badge-purple-bg)', Workshop: 'var(--badge-blue-bg)', Webinar: 'var(--badge-green-bg)', Bootcamp: 'var(--badge-amber-bg)', Conference: 'var(--badge-red-bg)' };
+    return m[type] ?? 'var(--badge-neutral-bg)';
   }
   protected typeColor(type: string): string {
-    const m: Record<string, string> = { Pitch: '#7C3AED', Workshop: '#1E40AF', Webinar: '#065F46', Bootcamp: '#92400E', Conference: '#9D174D' };
-    return m[type] ?? '#6B7A99';
+    const m: Record<string, string> = { Pitch: 'var(--badge-purple-text)', Workshop: 'var(--badge-blue-text)', Webinar: 'var(--badge-green-text)', Bootcamp: 'var(--badge-amber-text)', Conference: 'var(--badge-red-text)' };
+    return m[type] ?? 'var(--badge-neutral-text)';
   }
   protected statusBg(status: string): string {
-    const m: Record<string, string> = { Upcoming: '#D1FAE5', Ongoing: '#DBEAFE', Past: '#F3F4F6', Cancelled: '#FEE2E2' };
-    return m[status] ?? '#F3F4F6';
+    const m: Record<string, string> = { Upcoming: 'var(--badge-green-bg)', Ongoing: 'var(--badge-blue-bg)', Past: 'var(--badge-neutral-bg)', Cancelled: 'var(--badge-red-bg)' };
+    return m[status] ?? 'var(--badge-neutral-bg)';
   }
   protected statusColor(status: string): string {
-    const m: Record<string, string> = { Upcoming: '#065F46', Ongoing: '#1E40AF', Past: '#6B7A99', Cancelled: '#991B1B' };
-    return m[status] ?? '#6B7A99';
+    const m: Record<string, string> = { Upcoming: 'var(--badge-green-text)', Ongoing: 'var(--badge-blue-text)', Past: 'var(--badge-neutral-text)', Cancelled: 'var(--badge-red-text)' };
+    return m[status] ?? 'var(--badge-neutral-text)';
   }
 }

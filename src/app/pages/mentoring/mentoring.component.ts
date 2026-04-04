@@ -28,7 +28,7 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage your mentoring relationships and sessions</p>
         </div>
         <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#7C3AED,#3B82F6); color:#fff; padding:8px 16px;">
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
           <ng-icon name="lucidePlus" [size]="'14'" />
           Schedule Session
         </button>
@@ -82,10 +82,10 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
                       <ng-icon name="lucideTarget" [size]="'11'" style="display:inline;" />
                       Goals: {{ rel.goalsCompleted }}/{{ rel.goals }}
                     </span>
-                    <span class="text-xs font-semibold" style="color:#7C3AED;">{{ Math.round((rel.goalsCompleted/rel.goals)*100) }}%</span>
+                    <span class="text-xs font-semibold" style="color:#1C4FC3;">{{ Math.round((rel.goalsCompleted/rel.goals)*100) }}%</span>
                   </div>
                   <div style="height:4px; background:var(--surface-subtle); border-radius:99px; overflow:hidden;">
-                    <div style="height:100%; border-radius:99px; background:linear-gradient(90deg,#7C3AED,#3B82F6);"
+                    <div style="height:100%; border-radius:99px; background:linear-gradient(90deg,#1C4FC3,#1D1384);"
                       [style.width.%]="(rel.goalsCompleted/rel.goals)*100">
                     </div>
                   </div>
@@ -97,7 +97,7 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
                     {{ rel.sessions }} sessions · Next: {{ rel.nextSession }}
                   </div>
                   <button class="flex items-center gap-1 text-xs font-semibold"
-                    style="color:#7C3AED; background:transparent; border:none; cursor:pointer;">
+                    style="color:#1C4FC3; background:transparent; border:none; cursor:pointer;">
                     <ng-icon name="lucideVideo" [size]="'12'" /> Join
                   </button>
                 </div>
@@ -116,9 +116,9 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
                 <button
                   (click)="sessionFilter = f"
                   class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
-                  [style.background]="sessionFilter === f ? '#EDE9FE' : 'transparent'"
-                  [style.color]="sessionFilter === f ? '#7C3AED' : '#9CA3AF'"
-                  [style.border-color]="sessionFilter === f ? '#DDD6FE' : 'transparent'"
+                  [style.background]="sessionFilter === f ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+                  [style.color]="sessionFilter === f ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+                  [style.border-color]="sessionFilter === f ? 'var(--chip-active-border)' : 'transparent'"
                   style="padding:3px 10px;">{{ f }}</button>
               }
             </div>
@@ -128,13 +128,13 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
               <div class="flex items-start gap-4 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <div class="flex items-center justify-center rounded-lg flex-shrink-0"
                   style="width:38px; height:38px;"
-                  [style.background]="session.status === 'Scheduled' ? '#DBEAFE' : session.status === 'Completed' ? '#D1FAE5' : '#FEE2E2'">
+                  [style.background]="session.status === 'Scheduled' ? 'var(--badge-blue-bg)' : session.status === 'Completed' ? 'var(--badge-green-bg)' : 'var(--badge-red-bg)'">
                   @if (session.status === 'Scheduled') {
-                    <ng-icon name="lucideCalendar" [size]="'16'" style="color:#3B82F6;" />
+                    <ng-icon name="lucideCalendar" [size]="'16'" style="color:var(--badge-blue-text);" />
                   } @else if (session.status === 'Completed') {
-                    <ng-icon name="lucideCheck" [size]="'16'" style="color:#059669;" />
+                    <ng-icon name="lucideCheck" [size]="'16'" style="color:var(--badge-green-text);" />
                   } @else {
-                    <ng-icon name="lucideClock" [size]="'16'" style="color:#DC2626;" />
+                    <ng-icon name="lucideClock" [size]="'16'" style="color:var(--badge-red-text);" />
                   }
                 </div>
                 <div class="flex-1 min-w-0">
@@ -147,8 +147,8 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
                   </p>
                 </div>
                 <span class="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
-                  [style.background]="session.status === 'Scheduled' ? '#DBEAFE' : session.status === 'Completed' ? '#D1FAE5' : '#FEE2E2'"
-                  [style.color]="session.status === 'Scheduled' ? '#1E40AF' : session.status === 'Completed' ? '#065F46' : '#991B1B'">
+                  [style.background]="session.status === 'Scheduled' ? 'var(--badge-blue-bg)' : session.status === 'Completed' ? 'var(--badge-green-bg)' : 'var(--badge-red-bg)'"
+                  [style.color]="session.status === 'Scheduled' ? 'var(--badge-blue-text)' : session.status === 'Completed' ? 'var(--badge-green-text)' : 'var(--badge-red-text)'">
                   {{ session.status }}
                 </span>
               </div>
@@ -172,8 +172,8 @@ export class MentoringComponent {
   ];
 
   protected readonly mentorRelations: MentorRelation[] = [
-    { mentor: 'Sarah Chen',      expertise: 'Investment & Fundraising', sessions: 8,  nextSession: 'Apr 8',  initials: 'SC', color: '#7C3AED', rating: 4.9, goals: 5, goalsCompleted: 4 },
-    { mentor: 'Ahmed Belkacemi', expertise: 'Product Strategy & Tech',  sessions: 10, nextSession: 'Apr 12', initials: 'AB', color: '#3B82F6', rating: 4.8, goals: 6, goalsCompleted: 5 },
+    { mentor: 'Sarah Chen',      expertise: 'Investment & Fundraising', sessions: 8,  nextSession: 'Apr 8',  initials: 'SC', color: '#1C4FC3', rating: 4.9, goals: 5, goalsCompleted: 4 },
+    { mentor: 'Ahmed Belkacemi', expertise: 'Product Strategy & Tech',  sessions: 10, nextSession: 'Apr 12', initials: 'AB', color: '#1D1384', rating: 4.8, goals: 6, goalsCompleted: 5 },
     { mentor: 'Marie Leclerc',   expertise: 'Legal & Compliance',       sessions: 6,  nextSession: 'Apr 20', initials: 'ML', color: '#059669', rating: 4.7, goals: 4, goalsCompleted: 3 },
   ];
 
