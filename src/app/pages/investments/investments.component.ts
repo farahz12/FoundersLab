@@ -19,23 +19,25 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
     lucideClock, lucideEye, lucideMessageSquare, lucideStar,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Investment Management</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Track investor matching and funding opportunities</p>
         </div>
-        <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
-          <ng-icon name="lucidePlus" [size]="'14'" />
-          Set Investment Criteria
-        </button>
+        <div class="page-header-actions">
+          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+            <ng-icon name="lucidePlus" [size]="'14'" />
+            Set Investment Criteria
+          </button>
+        </div>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-4 gap-4">
+      <div class="stats-grid stats-grid--4">
         @for (s of investStats; track s.label) {
           <div class="rounded-xl border p-4"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -46,7 +48,7 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
       </div>
 
       <!-- Two column -->
-      <div class="grid gap-5" style="grid-template-columns:1fr 1fr;">
+      <div class="split-grid split-grid--equal">
 
         <!-- Investor profiles -->
         <div class="rounded-xl border overflow-hidden"
@@ -100,9 +102,9 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
         <!-- Interest requests -->
         <div class="rounded-xl border overflow-hidden"
           style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
-          <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
+          <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between" style="border-bottom:1px solid var(--border-subtle);">
             <h3 class="text-sm font-bold" style="color:var(--text-primary);">Interest Requests</h3>
-            <div class="flex items-center gap-2">
+            <div class="chip-scroll">
               @for (status of statusFilters; track status) {
                 <button
                   (click)="statusFilter = status"
@@ -116,7 +118,7 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
           </div>
           <div class="divide-y" style="divide-color:var(--border-subtle);">
             @for (req of requests; track req.startup + req.investor) {
-              <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <div class="flex flex-col gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors sm:flex-row sm:items-center sm:gap-4">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
                     <p class="text-sm font-semibold truncate" style="color:var(--text-primary);">{{ req.startup }}</p>
@@ -128,7 +130,7 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
                     <span class="text-xs font-semibold" style="color:var(--badge-green-text);">{{ req.amount }}</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0 sm:self-center">
                   <span class="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1"
                     [style.background]="req.status === 'Accepted' ? 'var(--badge-green-bg)' : req.status === 'Declined' ? 'var(--badge-red-bg)' : 'var(--badge-amber-bg)'"
                     [style.color]="req.status === 'Accepted' ? 'var(--badge-green-text)' : req.status === 'Declined' ? 'var(--badge-red-text)' : 'var(--badge-amber-text)'">

@@ -19,23 +19,25 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
     lucideUser, lucideVideo, lucideChevronRight,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Mentoring Sessions</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage your mentoring relationships and sessions</p>
         </div>
-        <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
-          <ng-icon name="lucidePlus" [size]="'14'" />
-          Schedule Session
-        </button>
+        <div class="page-header-actions">
+          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+            <ng-icon name="lucidePlus" [size]="'14'" />
+            Schedule Session
+          </button>
+        </div>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-4 gap-4">
+      <div class="stats-grid stats-grid--4">
         @for (s of mentoringStats; track s.label) {
           <div class="rounded-xl border p-4"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -46,7 +48,7 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
       </div>
 
       <!-- Two column -->
-      <div class="grid gap-5" style="grid-template-columns:1fr 1fr;">
+      <div class="split-grid split-grid--equal">
 
         <!-- My Mentors -->
         <div class="rounded-xl border overflow-hidden"
@@ -91,7 +93,7 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div class="flex items-center gap-1 text-xs" style="color:var(--text-secondary);">
                     <ng-icon name="lucideCalendar" [size]="'11'" />
                     {{ rel.sessions }} sessions · Next: {{ rel.nextSession }}
@@ -109,9 +111,9 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
         <!-- Sessions history -->
         <div class="rounded-xl border overflow-hidden"
           style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
-          <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
+          <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between" style="border-bottom:1px solid var(--border-subtle);">
             <h3 class="text-sm font-bold" style="color:var(--text-primary);">Session History</h3>
-            <div class="flex items-center gap-2">
+            <div class="chip-scroll">
               @for (f of sessionFilters; track f) {
                 <button
                   (click)="sessionFilter = f"
@@ -125,7 +127,7 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
           </div>
           <div class="divide-y" style="divide-color:var(--border-subtle);">
             @for (session of sessions; track session.date + session.mentor) {
-              <div class="flex items-start gap-4 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <div class="flex flex-col gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors sm:flex-row sm:items-start sm:gap-4">
                 <div class="flex items-center justify-center rounded-lg flex-shrink-0"
                   style="width:38px; height:38px;"
                   [style.background]="session.status === 'Scheduled' ? 'var(--badge-blue-bg)' : session.status === 'Completed' ? 'var(--badge-green-bg)' : 'var(--badge-red-bg)'">
@@ -146,7 +148,7 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
                     {{ session.date }} · {{ session.time }}
                   </p>
                 </div>
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 sm:self-start"
                   [style.background]="session.status === 'Scheduled' ? 'var(--badge-blue-bg)' : session.status === 'Completed' ? 'var(--badge-green-bg)' : 'var(--badge-red-bg)'"
                   [style.color]="session.status === 'Scheduled' ? 'var(--badge-blue-text)' : session.status === 'Completed' ? 'var(--badge-green-text)' : 'var(--badge-red-text)'">
                   {{ session.status }}

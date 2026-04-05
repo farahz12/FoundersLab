@@ -30,23 +30,25 @@ interface Partner {
     lucideArrowUp, lucideExternalLink, lucideRefreshCw,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Partnerships</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage institutional partnerships and conventions</p>
         </div>
-        <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
-          <ng-icon name="lucidePlus" [size]="'14'" />
-          Add Partner
-        </button>
+        <div class="page-header-actions">
+          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+            <ng-icon name="lucidePlus" [size]="'14'" />
+            Add Partner
+          </button>
+        </div>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-4 gap-4">
+      <div class="stats-grid stats-grid--4">
         @for (s of partnerStats; track s.label) {
           <div class="rounded-xl border p-4"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -63,7 +65,7 @@ interface Partner {
       </div>
 
       <!-- Partners grid -->
-      <div class="grid gap-4" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));">
+      <div class="card-grid-auto">
         @for (p of partners; track p.name) {
           <div class="rounded-xl border overflow-hidden"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -117,7 +119,7 @@ interface Partner {
             </div>
 
             <!-- Footer -->
-            <div class="flex items-center justify-between px-5 py-3">
+            <div class="flex flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div class="text-xs" style="color:var(--text-muted);">
                 Since {{ p.since }} · Expires {{ p.expires }}
               </div>

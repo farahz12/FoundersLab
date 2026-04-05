@@ -20,23 +20,25 @@ interface Opportunity { title: string; type: string; company: string; location: 
     lucideMapPin, lucideCalendar, lucideThumbsUp,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Community &amp; Network</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Connect, share and grow with the ecosystem</p>
         </div>
-        <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
-          <ng-icon name="lucidePlus" [size]="'14'" />
-          New Discussion
-        </button>
+        <div class="page-header-actions">
+          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+            <ng-icon name="lucidePlus" [size]="'14'" />
+            New Discussion
+          </button>
+        </div>
       </div>
 
       <!-- Stats row -->
-      <div class="grid grid-cols-4 gap-4">
+      <div class="stats-grid stats-grid--4">
         @for (s of communityStats; track s.label) {
           <div class="rounded-xl border p-4 text-center"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -47,14 +49,14 @@ interface Opportunity { title: string; type: string; company: string; location: 
       </div>
 
       <!-- Two column layout -->
-      <div class="grid gap-5" style="grid-template-columns:1fr 300px;">
+      <div class="split-grid split-grid--sidebar">
 
         <!-- Forum discussions -->
         <div class="rounded-xl border overflow-hidden"
           style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
-          <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
+          <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between" style="border-bottom:1px solid var(--border-subtle);">
             <h3 class="text-sm font-bold" style="color:var(--text-primary);">Forum Discussions</h3>
-            <div class="flex items-center gap-2">
+            <div class="chip-scroll">
               @for (cat of categories; track cat) {
                 <button
                   (click)="selectedCategory = cat"
@@ -68,21 +70,21 @@ interface Opportunity { title: string; type: string; company: string; location: 
           </div>
           <div class="divide-y" style="divide-color:var(--border-subtle);">
             @for (f of forums; track f.title) {
-              <div class="flex items-start gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+              <div class="flex flex-col gap-3 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer sm:flex-row sm:items-start sm:gap-4">
                 <div class="flex items-center justify-center rounded-full flex-shrink-0"
                   [style.background]="f.color"
                   style="width:34px; height:34px; color:#fff; font-size:11px; font-weight:700;">
                   {{ f.initials }}
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-0.5">
+                  <div class="flex flex-wrap items-center gap-2 mb-0.5">
                     <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background:var(--badge-purple-bg); color:#1C4FC3;">{{ f.category }}</span>
                     <span class="text-xs" style="color:var(--text-muted);">{{ f.time }}</span>
                   </div>
                   <h4 class="text-sm font-semibold truncate" style="color:var(--text-primary);">{{ f.title }}</h4>
                   <p class="text-xs mt-0.5" style="color:var(--text-muted);">by {{ f.author }}</p>
                 </div>
-                <div class="flex items-center gap-4 flex-shrink-0">
+                <div class="flex items-center gap-4 flex-shrink-0 sm:self-center">
                   <div class="flex items-center gap-1 text-xs" style="color:var(--text-muted);">
                     <ng-icon name="lucideMessageSquare" [size]="'12'" />
                     {{ f.replies }}

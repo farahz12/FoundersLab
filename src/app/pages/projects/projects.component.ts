@@ -30,27 +30,29 @@ interface Startup {
     lucideArrowUp, lucideArrowDown, lucideTrendingUp,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Startup Projects</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">{{ filtered().length }} projects in the ecosystem</p>
         </div>
-        <button
-          class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer transition-all hover:opacity-90"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;"
-          aria-label="Add new project"
-        >
-          <ng-icon name="lucidePlus" [size]="'14'" />
-          New Project
-        </button>
+        <div class="page-header-actions">
+          <button
+            class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-all hover:opacity-90 sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;"
+            aria-label="Add new project"
+          >
+            <ng-icon name="lucidePlus" [size]="'14'" />
+            New Project
+          </button>
+        </div>
       </div>
 
       <!-- Filters bar -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative">
+      <div class="filter-toolbar">
+        <div class="relative filter-toolbar__grow">
           <ng-icon name="lucideSearch" [size]="'13'" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);" />
           <input
             type="search"
@@ -58,12 +60,12 @@ interface Startup {
             aria-label="Search startups"
             [value]="searchQuery()"
             (input)="searchQuery.set($any($event.target).value)"
-            class="text-xs rounded-lg border focus:outline-none"
-            style="padding:6px 12px 6px 28px; background:var(--surface); border-color:var(--border); width:220px; font-family:var(--font-sans);"
+            class="input-full text-xs rounded-lg border focus:outline-none"
+            style="padding:6px 12px 6px 28px; background:var(--surface); border-color:var(--border); font-family:var(--font-sans);"
           />
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="chip-scroll">
           @for (f of stageFilters; track f) {
             <button
               (click)="stageFilter.set(f)"
@@ -78,7 +80,7 @@ interface Startup {
       </div>
 
       <!-- Project cards grid -->
-      <div class="grid gap-4" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));">
+      <div class="card-grid-auto">
         @for (s of filtered(); track s.name) {
           <div class="rounded-xl border transition-all hover:shadow-md cursor-pointer group"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04); padding:20px;">
@@ -108,7 +110,7 @@ interface Startup {
             <p class="text-xs leading-relaxed mb-4 line-clamp-2" style="color:var(--text-secondary);">{{ s.description }}</p>
 
             <!-- Sector + Stage -->
-            <div class="flex items-center gap-2 mb-4">
+            <div class="flex flex-wrap items-center gap-2 mb-4">
               <span class="text-xs px-2 py-0.5 rounded-full" style="background:var(--badge-purple-bg); color:#1C4FC3; font-weight:500;">{{ s.sector }}</span>
               <span class="text-xs px-2 py-0.5 rounded-full" style="background:var(--surface-subtle); color:var(--text-body); font-weight:500;">{{ s.stage }}</span>
               <span class="text-xs" style="color:var(--text-muted);">· Team: {{ s.team }}</span>

@@ -30,23 +30,25 @@ interface Event {
     lucideClock, lucideSearch, lucideEdit,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Events</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage webinars, workshops, pitch sessions &amp; more</p>
         </div>
-        <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer transition-opacity hover:opacity-90"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
-          <ng-icon name="lucidePlus" [size]="'14'" />
-          Create Event
-        </button>
+        <div class="page-header-actions">
+          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-opacity hover:opacity-90 sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+            <ng-icon name="lucidePlus" [size]="'14'" />
+            Create Event
+          </button>
+        </div>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-4 gap-4">
+      <div class="stats-grid stats-grid--4">
         @for (s of eventStats; track s.label) {
           <div class="rounded-xl border p-4"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -57,18 +59,18 @@ interface Event {
       </div>
 
       <!-- Filters -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative">
+      <div class="filter-toolbar">
+        <div class="relative filter-toolbar__grow">
           <ng-icon name="lucideSearch" [size]="'13'"
             style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);" />
           <input type="search" placeholder="Search events..."
             aria-label="Search events"
             [value]="searchQ()"
             (input)="searchQ.set($any($event.target).value)"
-            class="text-xs rounded-lg border focus:outline-none"
-            style="padding:6px 12px 6px 28px; background:var(--surface); border-color:var(--border); width:200px; font-family:var(--font-sans);" />
+            class="input-full text-xs rounded-lg border focus:outline-none"
+            style="padding:6px 12px 6px 28px; background:var(--surface); border-color:var(--border); font-family:var(--font-sans);" />
         </div>
-        <div class="flex items-center gap-2">
+        <div class="chip-scroll">
           @for (f of typeFilters; track f) {
             <button (click)="typeFilter.set(f)"
               class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
@@ -78,7 +80,7 @@ interface Event {
               style="padding:5px 12px;">{{ f }}</button>
           }
         </div>
-        <div class="flex items-center gap-2 ml-auto">
+        <div class="chip-scroll sm:ml-auto">
           @for (v of ['grid', 'list']; track v) {
             <button (click)="viewMode.set(v)"
               class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
@@ -94,7 +96,7 @@ interface Event {
 
       <!-- Events grid -->
       @if (viewMode() === 'grid') {
-        <div class="grid gap-5" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));">
+        <div class="card-grid-auto">
           @for (event of filteredEvents(); track event.title) {
             <article class="rounded-2xl border overflow-hidden transition-all hover:shadow-lg cursor-pointer group"
               style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -134,14 +136,14 @@ interface Event {
                 </div>
 
                 <!-- Online/Location badge on image bottom-right -->
-                <div class="absolute bottom-3 right-3 flex items-center gap-1 rounded-full px-2 py-1"
+                <div class="absolute bottom-3 right-3 flex max-w-[calc(100%-24px)] items-center gap-1 rounded-full px-2 py-1"
                   style="background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
                   @if (event.isOnline) {
                     <ng-icon name="lucideVideo" [size]="'11'" style="color:#fff;" />
                     <span class="text-xs" style="color:#fff;">Online</span>
                   } @else {
                     <ng-icon name="lucideMapPin" [size]="'11'" style="color:#fff;" />
-                    <span class="text-xs" style="color:#fff;">{{ event.location }}</span>
+                    <span class="truncate text-xs" style="color:#fff;">{{ event.location }}</span>
                   }
                 </div>
               </div>
@@ -212,11 +214,11 @@ interface Event {
       @if (viewMode() === 'list') {
         <div class="space-y-3">
           @for (event of filteredEvents(); track event.title) {
-            <div class="rounded-xl border overflow-hidden transition-all hover:shadow-md cursor-pointer flex"
+            <div class="rounded-xl border overflow-hidden transition-all hover:shadow-md cursor-pointer flex flex-col lg:flex-row"
               style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
 
               <!-- Thumbnail -->
-              <div class="relative overflow-hidden flex-shrink-0" style="width:120px;">
+              <div class="relative overflow-hidden flex-shrink-0 h-[180px] w-full lg:h-auto lg:w-[120px]">
                 <img
                   [src]="'https://picsum.photos/seed/' + event.coverSeed + '/240/160'"
                   [alt]="event.title"
@@ -227,8 +229,8 @@ interface Event {
               </div>
 
               <!-- Date column -->
-              <div class="flex flex-col items-center justify-center flex-shrink-0"
-                style="width:72px; background:linear-gradient(135deg,#1F2937,#1D1384); padding:16px 8px;">
+              <div class="flex flex-row items-center justify-between gap-3 px-4 py-3 flex-shrink-0 lg:w-[72px] lg:flex-col lg:justify-center"
+                style="background:linear-gradient(135deg,#1F2937,#1D1384);">
                 <span class="text-xs font-semibold" style="color:#93C5FD;">{{ event.date.split(' ')[0] }}</span>
                 <span class="text-xl font-bold leading-none" style="color:#fff;">{{ event.date.split(' ')[1] }}</span>
                 <span class="text-xs" style="color:#93C5FD;">{{ event.date.split(' ')[2] }}</span>
@@ -236,16 +238,16 @@ interface Event {
 
               <!-- Content -->
               <div class="flex flex-col justify-center flex-1 px-5 py-4">
-                <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
                       <span class="text-xs font-semibold px-1.5 py-0.5 rounded"
                         [style.background]="typeBg(event.type)" [style.color]="typeColor(event.type)">{{ event.type }}</span>
                       <span class="text-xs font-medium px-1.5 py-0.5 rounded-full"
                         [style.background]="statusBg(event.status)" [style.color]="statusColor(event.status)">{{ event.status }}</span>
                     </div>
                     <h3 class="text-sm font-bold" style="color:var(--text-primary);">{{ event.title }}</h3>
-                    <div class="flex items-center gap-3 mt-1 text-xs" style="color:var(--text-muted);">
+                    <div class="mt-1 flex flex-wrap items-center gap-3 text-xs" style="color:var(--text-muted);">
                       <span class="flex items-center gap-1">
                         <ng-icon name="lucideClock" [size]="'11'" /> {{ event.time }}
                       </span>
@@ -262,7 +264,7 @@ interface Event {
                     </div>
                   </div>
                   @if (event.status === 'Upcoming') {
-                    <button class="text-xs font-semibold rounded-lg border-none cursor-pointer flex-shrink-0"
+                    <button class="w-full text-xs font-semibold rounded-lg border-none cursor-pointer flex-shrink-0 lg:w-auto"
                       style="background:var(--badge-purple-bg); color:#1C4FC3; padding:7px 14px;">Register</button>
                   }
                 </div>

@@ -24,25 +24,27 @@ interface Activity { user: string; action: string; time: string; initials: strin
     lucideActivity, lucideMessageSquare, lucideStar,
   })],
   template: `
-    <div class="space-y-6">
+    <div class="page-shell">
       <!-- Welcome -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-xl font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">
             Welcome back, Mohamed Slimane 👋
           </h2>
           <p class="text-sm mt-0.5" style="color:var(--text-secondary);">Here's what's happening across your ecosystem today.</p>
         </div>
-        <a routerLink="/projects"
-          class="flex items-center gap-1.5 text-xs font-semibold rounded-lg transition-all hover:shadow-md"
-          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
-          <ng-icon name="lucideRocket" [size]="'14'" />
-          New Project
-        </a>
+        <div class="page-header-actions">
+          <a routerLink="/projects"
+            class="flex w-full items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all hover:shadow-md sm:w-auto"
+            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+            <ng-icon name="lucideRocket" [size]="'14'" />
+            New Project
+          </a>
+        </div>
       </div>
 
       <!-- Stats grid -->
-      <div class="grid grid-cols-2 gap-4" style="grid-template-columns:repeat(4,1fr);">
+      <div class="stats-grid stats-grid--4">
         @for (stat of stats; track stat.label) {
           <div class="rounded-xl p-5 border"
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
@@ -67,7 +69,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
       </div>
 
       <!-- Two column layout -->
-      <div class="grid gap-6" style="grid-template-columns:1fr 340px;">
+      <div class="split-grid split-grid--dashboard">
 
         <!-- Startups table -->
         <div class="rounded-xl border overflow-hidden"

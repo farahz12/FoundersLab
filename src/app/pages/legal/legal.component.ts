@@ -19,15 +19,15 @@ interface Document { name: string; type: string; date: string; size: string; }
     lucidePlus, lucideExternalLink,
   })],
   template: `
-    <div class="space-y-5">
+    <div class="page-shell">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="page-header">
         <div>
           <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Legal Support</h2>
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Administrative procedures and compliance tracking</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="page-header-actions">
           <button class="text-xs font-semibold rounded-lg border cursor-pointer"
             style="background:var(--surface); color:var(--text-body); border-color:var(--border); padding:7px 14px;">
             Download All
@@ -41,7 +41,7 @@ interface Document { name: string; type: string; date: string; size: string; }
       </div>
 
       <!-- Alert banner -->
-      <div class="flex items-center gap-3 rounded-xl border px-5 py-4"
+      <div class="flex flex-col gap-3 rounded-xl border px-5 py-4 sm:flex-row sm:items-center"
         style="background:var(--badge-amber-bg); border-color:var(--badge-amber-text);">
         <ng-icon name="lucideAlertCircle" [size]="'18'" style="color:var(--badge-amber-text); flex-shrink:0;" />
         <div class="flex-1">
@@ -55,7 +55,7 @@ interface Document { name: string; type: string; date: string; size: string; }
       </div>
 
       <!-- Two column layout -->
-      <div class="grid gap-5" style="grid-template-columns:1fr 1fr;">
+      <div class="split-grid split-grid--equal">
 
         <!-- Checklist -->
         <div class="rounded-xl border overflow-hidden"

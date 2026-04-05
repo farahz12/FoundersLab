@@ -8,7 +8,7 @@ import {
   lucideUsers, lucideLogOut, lucideUser, lucideX, lucideMail,
   lucideBriefcase, lucideShield, lucideGlobe, lucideCheck,
   lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
-  lucideMonitor,
+  lucideMonitor, lucideMenu,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -29,15 +29,24 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideUsers, lucideLogOut, lucideUser, lucideX, lucideMail,
       lucideBriefcase, lucideShield, lucideGlobe, lucideCheck,
       lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
-      lucideMonitor,
+      lucideMonitor, lucideMenu,
     }),
   ],
   template: `
-    <div class="flex h-screen overflow-hidden" style="background:var(--background);">
+    <div class="flex min-h-screen overflow-hidden" style="background:var(--background);">
+      @if (mobileNavOpen()) {
+        <button
+          type="button"
+          class="mobile-nav-backdrop"
+          (click)="closeMobileNav()"
+          aria-label="Close navigation menu"
+        ></button>
+      }
 
       <!-- ══ SIDEBAR (width driven by sidebarExpanded signal) ══ -->
       <aside
-        class="sidebar-nav fixed inset-y-0 left-0 z-30 flex flex-col"
+        class="sidebar-nav fixed inset-y-0 left-0 z-50 flex flex-col"
+        [class.mobile-open]="mobileNavOpen()"
         [style.width]="sidebarExpanded() ? '220px' : '60px'"
         [style.box-shadow]="sidebarExpanded() ? '4px 0 28px rgba(0,0,0,0.32)' : 'none'"
         style="background:#1F2937; border-right:1px solid rgba(255,255,255,0.07);"
@@ -57,6 +66,15 @@ interface Notification { id: number; title: string; body: string; time: string; 
             style="font-size:14px; letter-spacing:-0.02em;">
             FoundersLab
           </span>
+          <button
+            type="button"
+            (click)="closeMobileNav()"
+            class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-white lg:hidden"
+            style="background:rgba(255,255,255,0.08); border:none; cursor:pointer;"
+            aria-label="Close navigation"
+          >
+            <ng-icon name="lucideX" [size]="'16'" />
+          </button>
         </div>
 
         <!-- Nav items -->
@@ -65,6 +83,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
             <a
               [routerLink]="item.route"
               routerLinkActive="active-nav"
+              (click)="closeMobileNav()"
               class="nav-item relative flex items-center rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               style="height:40px; padding:0 2px; color:var(--text-secondary); text-decoration:none;"
               [attr.aria-label]="item.label"
@@ -86,7 +105,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
         <div class="flex flex-col gap-1" style="border-top:1px solid rgba(255,255,255,0.07); padding:12px 10px 14px;">
           <!-- Settings -->
           <button
-            (click)="showSettings.set(true)"
+            (click)="showSettings.set(true); closeMobileNav()"
             class="nav-item relative flex items-center rounded-lg transition-colors duration-150 w-full"
             style="height:40px; padding:0 2px; color:var(--text-secondary); background:transparent; border:none; cursor:pointer;"
             aria-label="Open settings"
@@ -104,7 +123,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
           <!-- Profile -->
           <button
-            (click)="showProfile.set(true)"
+            (click)="showProfile.set(true); closeMobileNav()"
             class="relative flex items-center rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 w-full"
             style="height:44px; padding:0 2px; background:transparent; border:none; cursor:pointer; margin-top:4px;"
             aria-label="Open profile"
@@ -124,22 +143,32 @@ interface Notification { id: number; title: string; body: string; time: string; 
       </aside>
 
       <!-- ══ MAIN AREA (offset by sidebar width) ══ -->
-      <div class="flex flex-col flex-1 overflow-hidden" style="margin-left:60px;">
+      <div class="main-shell flex flex-col flex-1 overflow-hidden" style="margin-left:60px;">
 
         <!-- TOPBAR -->
         <header
-          class="flex items-center gap-3 px-6 flex-shrink-0"
-          style="height:56px; background:var(--surface); border-bottom:1px solid var(--border); position:relative; z-index:20;"
+          class="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-6 sm:py-0 flex-shrink-0"
+          style="min-height:56px; background:var(--surface); border-bottom:1px solid var(--border); position:relative; z-index:20;"
           role="banner"
         >
-          <div class="flex-1">
+          <button
+            type="button"
+            (click)="openMobileNav()"
+            class="flex h-10 w-10 items-center justify-center rounded-lg lg:hidden"
+            style="background:var(--surface-subtle); border:1px solid var(--border); color:var(--text-primary); cursor:pointer;"
+            aria-label="Open navigation"
+          >
+            <ng-icon name="lucideMenu" [size]="'18'" />
+          </button>
+
+          <div class="min-w-0 flex-1">
             <h1 class="text-sm font-semibold" style="color:var(--text-primary); letter-spacing:-0.01em;">
               {{ currentPageTitle() }}
             </h1>
           </div>
 
           <!-- Search -->
-          <div class="relative hidden md:block">
+          <div class="relative hidden lg:block">
             <ng-icon name="lucideSearch" [size]="'14'"
               style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted);" />
             <input type="search" placeholder="Search..." aria-label="Search"
@@ -147,46 +176,48 @@ interface Notification { id: number; title: string; body: string; time: string; 
               style="padding:6px 12px 6px 32px; background:var(--surface-input); border:1.5px solid var(--border); border-radius:8px; width:200px; font-family:var(--font-sans); font-size:13px; color:var(--text-body);" />
           </div>
 
-          <!-- Notifications bell -->
-          <div class="relative">
+          <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            <!-- Notifications bell -->
+            <div class="relative">
+              <button
+                (click)="showNotifications.set(!showNotifications())"
+                class="relative flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                style="width:36px; height:36px; color:var(--text-secondary); background:transparent; border:none; cursor:pointer;"
+                aria-label="Notifications"
+                [attr.aria-expanded]="showNotifications()"
+              >
+                <ng-icon name="lucideBell" [size]="'18'" />
+                @if (unreadCount() > 0) {
+                  <span aria-hidden="true" class="absolute rounded-full flex items-center justify-center"
+                    style="top:5px; right:5px; width:16px; height:16px; background:var(--badge-notification-bg); color:var(--badge-notification-text); font-size:9px; font-weight:700;">
+                    {{ unreadCount() }}
+                  </span>
+                }
+              </button>
+            </div>
+
+            <!-- User info (topbar) -->
             <button
-              (click)="showNotifications.set(!showNotifications())"
-              class="relative flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-              style="width:36px; height:36px; color:var(--text-secondary); background:transparent; border:none; cursor:pointer;"
-              aria-label="Notifications"
-              [attr.aria-expanded]="showNotifications()"
+              (click)="showProfile.set(true)"
+              class="flex items-center gap-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+              style="padding:4px 8px; background:transparent; border:none;"
+              aria-label="Open profile"
             >
-              <ng-icon name="lucideBell" [size]="'18'" />
-              @if (unreadCount() > 0) {
-                <span aria-hidden="true" class="absolute rounded-full flex items-center justify-center"
-                  style="top:5px; right:5px; width:16px; height:16px; background:var(--badge-notification-bg); color:var(--badge-notification-text); font-size:9px; font-weight:700;">
-                  {{ unreadCount() }}
-                </span>
-              }
+              <div class="flex items-center justify-center rounded-full flex-shrink-0"
+                style="width:32px; height:32px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:11px; font-weight:700;">
+                MS
+              </div>
+              <div class="hidden md:block text-left">
+                <p class="text-xs font-semibold leading-none" style="color:var(--text-primary);">Mohamed Slimane</p>
+                <p class="text-xs leading-none mt-0.5" style="color:var(--text-muted);">Founder</p>
+              </div>
+              <ng-icon name="lucideChevronDown" [size]="'13'" style="color:var(--text-muted);" />
             </button>
           </div>
-
-          <!-- User info (topbar) -->
-          <button
-            (click)="showProfile.set(true)"
-            class="flex items-center gap-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
-            style="padding:4px 8px; background:transparent; border:none;"
-            aria-label="Open profile"
-          >
-            <div class="flex items-center justify-center rounded-full flex-shrink-0"
-              style="width:32px; height:32px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:11px; font-weight:700;">
-              MS
-            </div>
-            <div class="hidden md:block text-left">
-              <p class="text-xs font-semibold leading-none" style="color:var(--text-primary);">Mohamed Slimane</p>
-              <p class="text-xs leading-none mt-0.5" style="color:var(--text-muted);">Founder</p>
-            </div>
-            <ng-icon name="lucideChevronDown" [size]="'13'" style="color:var(--text-muted);" />
-          </button>
         </header>
 
         <!-- PAGE CONTENT -->
-        <main class="flex-1 overflow-auto p-6" id="main-content">
+        <main class="app-main-content flex-1 overflow-auto p-4 sm:p-5 lg:p-6" id="main-content">
           <router-outlet />
         </main>
       </div>
@@ -199,7 +230,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
         <div class="fixed inset-0 z-40" (click)="showNotifications.set(false)" aria-hidden="true"></div>
         <div
           class="fixed z-50 rounded-2xl overflow-hidden"
-          style="top:62px; right:16px; width:340px; background:var(--surface); box-shadow:0 8px 40px rgba(11,15,42,0.18); border:1px solid var(--border);"
+          style="top:64px; right:12px; width:min(340px, calc(100vw - 24px)); background:var(--surface); box-shadow:0 8px 40px rgba(11,15,42,0.18); border:1px solid var(--border);"
           role="dialog" aria-label="Notifications"
         >
           <!-- Header -->
@@ -267,7 +298,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       @if (showProfile()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="User profile">
           <div class="modal-backdrop" (click)="showProfile.set(false)"></div>
-          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:380px; max-width:92vw; box-shadow:0 24px 64px rgba(0,0,0,0.28);">
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(380px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28);">
 
             <!-- Profile header gradient -->
             <div class="relative" style="background:linear-gradient(135deg,#1F2937 0%,#1D1384 60%,#1D1384 100%); padding:32px 24px 24px; text-align:center;">
@@ -318,7 +349,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 </div>
               </div>
 
-              <div class="flex items-center gap-3 mt-5">
+              <div class="flex flex-col gap-3 mt-5 sm:flex-row">
                 <button
                   (click)="showProfile.set(false)"
                   class="flex items-center justify-center gap-1.5 rounded-xl flex-1 text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"
@@ -346,7 +377,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       @if (showSettings()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Settings">
           <div class="modal-backdrop" (click)="showSettings.set(false)"></div>
-          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:480px; max-width:92vw; box-shadow:0 24px 64px rgba(0,0,0,0.28);">
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(480px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28);">
 
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
@@ -372,7 +403,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                     <ng-icon name="lucideSun" [size]="'15'" style="color:#1C4FC3;" />
                     <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Appearance</h3>
                   </div>
-                  <div class="grid grid-cols-3 gap-2">
+                  <div class="grid gap-2 sm:grid-cols-3">
                     @for (theme of themes; track theme.label) {
                       <button
                         (click)="themeService.theme.set(theme.id)"
@@ -397,7 +428,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   </div>
                   <div class="space-y-2">
                     @for (pref of notifPrefs; track pref.label) {
-                      <div class="flex items-center justify-between rounded-xl p-3.5" style="background:var(--surface-subtle);">
+                      <div class="flex flex-col gap-3 rounded-xl p-3.5 sm:flex-row sm:items-center sm:justify-between" style="background:var(--surface-subtle);">
                         <div>
                           <p class="text-sm font-medium" style="color:var(--text-primary);">{{ pref.label }}</p>
                           <p class="text-xs" style="color:var(--text-muted);">{{ pref.desc }}</p>
@@ -450,7 +481,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
             </div>
 
             <!-- Footer -->
-            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+            <div class="flex flex-col-reverse gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-end" style="border-top:1px solid var(--border-subtle);">
               <button (click)="showSettings.set(false)"
                 class="text-sm font-semibold rounded-xl cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                 style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">
@@ -477,6 +508,7 @@ export class LayoutComponent {
   protected readonly showProfile      = signal(false);
   protected readonly showSettings     = signal(false);
   protected readonly showNotifications = signal(false);
+  protected readonly mobileNavOpen = signal(false);
 
   protected readonly themes = [
     { id: 'light' as const, label: 'Light', icon: 'lucideSun' },
@@ -508,6 +540,14 @@ export class LayoutComponent {
 
   protected markAllRead(): void {
     this.notificationsList.update(list => list.map(n => ({ ...n, read: true })));
+  }
+
+  protected openMobileNav(): void {
+    this.mobileNavOpen.set(true);
+  }
+
+  protected closeMobileNav(): void {
+    this.mobileNavOpen.set(false);
   }
 
   protected readonly navItems: NavItem[] = [
