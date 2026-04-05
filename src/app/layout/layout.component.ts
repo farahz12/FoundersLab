@@ -8,7 +8,8 @@ import {
   lucideUsers, lucideLogOut, lucideUser, lucideX, lucideMail,
   lucideBriefcase, lucideShield, lucideGlobe, lucideCheck,
   lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
-  lucideMonitor, lucideMenu,
+  lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
+  lucideChevronRight, lucideLanguages, lucideCreditCard,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -29,7 +30,8 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideUsers, lucideLogOut, lucideUser, lucideX, lucideMail,
       lucideBriefcase, lucideShield, lucideGlobe, lucideCheck,
       lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
-      lucideMonitor, lucideMenu,
+      lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
+      lucideChevronRight, lucideLanguages, lucideCreditCard,
     }),
   ],
   template: `
@@ -136,7 +138,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
               [style.opacity]="sidebarExpanded() ? 1 : 0"
               [style.transition-delay]="sidebarExpanded() ? '0.1s' : '0s'">
               <p style="font-size:12px; font-weight:600; color:#fff; line-height:1.3;">Mohamed Slimane</p>
-              <p style="font-size:11px; color:var(--text-secondary);">Founder</p>
+              <p style="font-size:11px; color:var(--sidebar-muted);">Founder</p>
             </div>
           </button>
         </div>
@@ -351,7 +353,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
               <div class="flex flex-col gap-3 mt-5 sm:flex-row">
                 <button
-                  (click)="showProfile.set(false)"
+                  (click)="showProfile.set(false); settingsTab.set('profile'); showSettings.set(true)"
                   class="flex items-center justify-center gap-1.5 rounded-xl flex-1 text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"
                   style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:10px;">
                   <ng-icon name="lucideEdit" [size]="'14'" />
@@ -372,126 +374,350 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
 
       <!-- ══════════════════════════════════════ -->
-      <!-- SETTINGS MODAL                       -->
+      <!-- SETTINGS MODAL (sidebar layout)     -->
       <!-- ══════════════════════════════════════ -->
       @if (showSettings()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Settings">
           <div class="modal-backdrop" (click)="showSettings.set(false)"></div>
-          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(480px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28);">
+          <div class="relative rounded-2xl overflow-hidden flex" style="background:var(--surface); width:min(740px, calc(100vw - 24px)); height:min(580px, calc(100vh - 48px)); box-shadow:0 24px 64px rgba(0,0,0,0.28);">
 
-            <!-- Header -->
-            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
-              <div>
-                <h2 class="text-base font-bold" style="color:var(--text-primary);">Settings</h2>
-                <p class="text-xs mt-0.5" style="color:var(--text-muted);">Manage your account and preferences</p>
+            <!-- Settings sidebar -->
+            <div class="flex-shrink-0 flex flex-col" style="width:200px; background:var(--surface-subtle); border-right:1px solid var(--border-subtle);">
+              <div style="padding:20px 16px 12px;">
+                <h2 class="text-sm font-bold" style="color:var(--text-primary);">Settings</h2>
+                <p class="text-xs mt-0.5" style="color:var(--text-muted);">Manage your account</p>
               </div>
-              <button (click)="showSettings.set(false)"
-                class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-                style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"
-                aria-label="Close settings">
-                <ng-icon name="lucideX" [size]="'16'" />
-              </button>
+              <nav class="flex-1 flex flex-col gap-0.5" style="padding:0 8px;">
+                @for (tab of settingsTabs; track tab.id) {
+                  <button
+                    (click)="settingsTab.set(tab.id)"
+                    class="flex items-center gap-2.5 w-full rounded-lg text-left cursor-pointer transition-colors"
+                    style="padding:8px 10px; border:none; font-family:var(--font-sans);"
+                    [style.background]="settingsTab() === tab.id ? 'var(--chip-active-bg)' : 'transparent'"
+                    [style.color]="settingsTab() === tab.id ? '#1C4FC3' : 'var(--text-secondary)'"
+                  >
+                    <ng-icon [name]="tab.icon" [size]="'15'" />
+                    <span class="text-xs font-medium">{{ tab.label }}</span>
+                  </button>
+                }
+              </nav>
+              <div style="padding:12px 16px; border-top:1px solid var(--border-subtle);">
+                <button (click)="showSettings.set(false)"
+                  class="flex items-center gap-2 w-full rounded-lg text-left cursor-pointer transition-colors hover:bg-red-50 dark:hover:bg-gray-800"
+                  style="padding:8px 10px; border:none; background:transparent; color:var(--badge-red-text); font-family:var(--font-sans);">
+                  <ng-icon name="lucideLogOut" [size]="'14'" />
+                  <span class="text-xs font-medium">Sign out</span>
+                </button>
+              </div>
             </div>
 
-            <!-- Body -->
-            <div style="max-height:70vh; overflow-y:auto; padding:24px;">
-              <div class="space-y-6">
+            <!-- Settings content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+              <!-- Content header -->
+              <div class="flex items-center justify-between flex-shrink-0" style="padding:20px 24px 16px;">
+                <h3 class="text-base font-bold" style="color:var(--text-primary);">
+                  {{ activeSettingsLabel() }}
+                </h3>
+                <button (click)="showSettings.set(false)"
+                  class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                  style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"
+                  aria-label="Close settings">
+                  <ng-icon name="lucideX" [size]="'16'" />
+                </button>
+              </div>
 
-                <!-- Appearance -->
-                <div>
-                  <div class="flex items-center gap-2 mb-3">
-                    <ng-icon name="lucideSun" [size]="'15'" style="color:#1C4FC3;" />
-                    <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Appearance</h3>
+              <!-- Scrollable content area -->
+              <div class="flex-1 overflow-y-auto" style="padding:0 24px 24px;">
+
+                <!-- ─── PROFILE TAB ─── -->
+                @if (settingsTab() === 'profile') {
+                  <div class="space-y-6">
+                    <!-- Avatar upload -->
+                    <div class="flex items-center gap-5">
+                      <div class="relative">
+                        <div class="flex items-center justify-center rounded-full"
+                          style="width:80px; height:80px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:24px; font-weight:800;">
+                          MS
+                        </div>
+                        <button class="absolute flex items-center justify-center rounded-full"
+                          style="bottom:-2px; right:-2px; width:28px; height:28px; background:var(--surface); border:2px solid var(--border); cursor:pointer; color:var(--text-secondary);"
+                          aria-label="Upload photo">
+                          <ng-icon name="lucideCamera" [size]="'13'" />
+                        </button>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold" style="color:var(--text-primary);">Profile Photo</p>
+                        <p class="text-xs mt-0.5" style="color:var(--text-muted);">JPG, PNG or SVG. Max 2MB.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                          <button class="text-xs font-semibold rounded-lg cursor-pointer"
+                            style="background:var(--surface-subtle); border:1px solid var(--border); color:var(--text-body); padding:5px 12px; font-family:var(--font-sans);">
+                            Upload
+                          </button>
+                          <button class="text-xs font-semibold rounded-lg cursor-pointer"
+                            style="background:transparent; border:none; color:var(--badge-red-text); padding:5px 8px; font-family:var(--font-sans);">
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Profile form -->
+                    <div class="space-y-4">
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">First Name</label>
+                          <input type="text" value="Mohamed" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Last Name</label>
+                          <input type="text" value="Slimane" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Email</label>
+                        <input type="email" value="slimane@founderslab.io" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Role</label>
+                        <input type="text" value="Founder & Admin" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Bio</label>
+                        <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Tell us about yourself...">Founder of FoundersLab, building the startup ecosystem in North Africa.</textarea>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Phone</label>
+                        <input type="tel" value="+213 555 0123" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Location</label>
+                        <input type="text" value="Algiers, Algeria" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3" style="padding-top:8px; border-top:1px solid var(--border-subtle);">
+                      <button class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px; font-family:var(--font-sans);">Cancel</button>
+                      <button class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px; font-family:var(--font-sans);">Save Profile</button>
+                    </div>
                   </div>
-                  <div class="grid gap-2 sm:grid-cols-3">
-                    @for (theme of themes; track theme.label) {
-                      <button
-                        (click)="themeService.theme.set(theme.id)"
-                        class="rounded-xl border-2 p-3 cursor-pointer text-center transition-all"
-                        style="background:var(--surface-subtle); font-family:var(--font-sans);"
-                        [style.border-color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--border)'"
-                      >
-                        <ng-icon [name]="theme.icon" [size]="'18'" style="display:block; margin:0 auto 4px;"></ng-icon>
-                        <p class="text-xs font-medium" [style.color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--text-body)'">
-                          {{ theme.label }}
-                        </p>
+                }
+
+                <!-- ─── APPEARANCE TAB ─── -->
+                @if (settingsTab() === 'appearance') {
+                  <div class="space-y-6">
+                    <!-- Theme picker -->
+                    <div>
+                      <p class="text-xs font-semibold mb-3" style="color:var(--text-secondary);">Theme</p>
+                      <div class="grid grid-cols-3 gap-3">
+                        @for (theme of themes; track theme.label) {
+                          <button
+                            (click)="themeService.theme.set(theme.id)"
+                            class="rounded-xl border-2 p-4 cursor-pointer text-center transition-all"
+                            style="background:var(--surface-subtle); font-family:var(--font-sans);"
+                            [style.border-color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--border)'"
+                          >
+                            <ng-icon [name]="theme.icon" [size]="'20'" style="display:block; margin:0 auto 6px;"
+                              [style.color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--text-muted)'" />
+                            <p class="text-xs font-medium" [style.color]="themeService.theme() === theme.id ? '#1C4FC3' : 'var(--text-body)'">
+                              {{ theme.label }}
+                            </p>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Language -->
+                    <div>
+                      <p class="text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Language</p>
+                      <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                        <option selected>English</option>
+                        <option>French</option>
+                        <option>Arabic</option>
+                      </select>
+                    </div>
+
+                    <!-- Compact mode -->
+                    <div class="flex items-center justify-between rounded-xl p-3.5" style="background:var(--surface-subtle);">
+                      <div>
+                        <p class="text-sm font-medium" style="color:var(--text-primary);">Compact mode</p>
+                        <p class="text-xs" style="color:var(--text-muted);">Reduce spacing and font sizes</p>
+                      </div>
+                      <button (click)="compactMode = !compactMode"
+                        class="toggle-switch" role="switch"
+                        [attr.aria-checked]="compactMode" aria-label="Compact mode">
+                        <span class="toggle-knob"></span>
                       </button>
-                    }
+                    </div>
                   </div>
-                </div>
+                }
 
-                <!-- Notifications -->
-                <div>
-                  <div class="flex items-center gap-2 mb-3">
-                    <ng-icon name="lucideBell" [size]="'15'" style="color:#1C4FC3;" />
-                    <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Notifications</h3>
-                  </div>
+                <!-- ─── NOTIFICATIONS TAB ─── -->
+                @if (settingsTab() === 'notifications') {
                   <div class="space-y-2">
                     @for (pref of notifPrefs; track pref.label) {
-                      <div class="flex flex-col gap-3 rounded-xl p-3.5 sm:flex-row sm:items-center sm:justify-between" style="background:var(--surface-subtle);">
+                      <div class="flex items-center justify-between rounded-xl p-3.5" style="background:var(--surface-subtle);">
                         <div>
                           <p class="text-sm font-medium" style="color:var(--text-primary);">{{ pref.label }}</p>
                           <p class="text-xs" style="color:var(--text-muted);">{{ pref.desc }}</p>
                         </div>
-                        <button
-                          (click)="pref.enabled = !pref.enabled"
-                          class="relative rounded-full transition-colors flex-shrink-0"
-                          style="width:40px; height:22px; border:none; cursor:pointer;"
-                          [style.background]="pref.enabled ? '#1C4FC3' : '#D1D5DB'"
-                          [attr.aria-checked]="pref.enabled"
-                          role="switch"
-                          [attr.aria-label]="pref.label"
-                        >
-                          <span class="absolute top-0.5 rounded-full transition-transform"
-                            style="width:18px; height:18px; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,0.2);"
-                            [style.transform]="pref.enabled ? 'translateX(20px)' : 'translateX(2px)'">
-                          </span>
+                        <button (click)="pref.enabled = !pref.enabled"
+                          class="toggle-switch" role="switch"
+                          [attr.aria-checked]="pref.enabled" [attr.aria-label]="pref.label">
+                          <span class="toggle-knob"></span>
                         </button>
                       </div>
                     }
-                  </div>
-                </div>
 
-                <!-- Security -->
-                <div>
-                  <div class="flex items-center gap-2 mb-3">
-                    <ng-icon name="lucideShield" [size]="'15'" style="color:#1C4FC3;" />
-                    <h3 class="text-sm font-semibold" style="color:var(--text-primary);">Security</h3>
+                    <!-- Email digest -->
+                    <div style="margin-top:16px;">
+                      <p class="text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Email Digest</p>
+                      <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                        <option>Daily</option>
+                        <option selected>Weekly</option>
+                        <option>Never</option>
+                      </select>
+                    </div>
                   </div>
-                  <div class="space-y-2">
-                    <button class="flex items-center justify-between w-full rounded-xl p-3.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-left cursor-pointer"
-                      style="background:var(--surface-subtle); border:none;">
-                      <div>
-                        <p class="text-sm font-medium" style="color:var(--text-primary);">Change password</p>
-                        <p class="text-xs" style="color:var(--text-muted);">Last changed 30 days ago</p>
+                }
+
+                <!-- ─── SECURITY TAB ─── -->
+                @if (settingsTab() === 'security') {
+                  <div class="space-y-4">
+                    <!-- Change password -->
+                    <div class="rounded-xl p-4" style="background:var(--surface-subtle);">
+                      <div class="flex items-center gap-2 mb-3">
+                        <ng-icon name="lucideKey" [size]="'15'" style="color:#1C4FC3;" />
+                        <h4 class="text-sm font-semibold" style="color:var(--text-primary);">Change Password</h4>
                       </div>
-                      <ng-icon name="lucideChevronDown" [size]="'14'" style="color:var(--text-muted); transform:rotate(-90deg);" />
-                    </button>
-                    <button class="flex items-center justify-between w-full rounded-xl p-3.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-left cursor-pointer"
-                      style="background:var(--surface-subtle); border:none;">
-                      <div>
-                        <p class="text-sm font-medium" style="color:var(--text-primary);">Two-factor authentication</p>
-                        <p class="text-xs" style="color:var(--text-muted);">Not enabled</p>
+                      <div class="space-y-3">
+                        <div>
+                          <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Current Password</label>
+                          <input type="password" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter current password" />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">New Password</label>
+                          <input type="password" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter new password" />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Confirm Password</label>
+                          <input type="password" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Confirm new password" />
+                        </div>
+                        <button class="text-xs font-semibold rounded-lg cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:7px 16px; font-family:var(--font-sans);">Update Password</button>
+                      </div>
+                    </div>
+
+                    <!-- Two-factor auth -->
+                    <div class="flex items-center justify-between rounded-xl p-4" style="background:var(--surface-subtle);">
+                      <div class="flex items-center gap-3">
+                        <ng-icon name="lucideShield" [size]="'15'" style="color:#1C4FC3;" />
+                        <div>
+                          <p class="text-sm font-medium" style="color:var(--text-primary);">Two-Factor Authentication</p>
+                          <p class="text-xs" style="color:var(--text-muted);">Add an extra layer of security</p>
+                        </div>
                       </div>
                       <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:var(--badge-amber-bg); color:var(--badge-amber-text);">Recommended</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    </div>
 
-            <!-- Footer -->
-            <div class="flex flex-col-reverse gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-end" style="border-top:1px solid var(--border-subtle);">
-              <button (click)="showSettings.set(false)"
-                class="text-sm font-semibold rounded-xl cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-                style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">
-                Cancel
-              </button>
-              <button (click)="showSettings.set(false)"
-                class="text-sm font-semibold rounded-xl cursor-pointer transition-opacity hover:opacity-90"
-                style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">
-                Save changes
-              </button>
+                    <!-- Sessions -->
+                    <div class="rounded-xl p-4" style="background:var(--surface-subtle);">
+                      <h4 class="text-sm font-semibold mb-3" style="color:var(--text-primary);">Active Sessions</h4>
+                      <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <p class="text-xs font-medium" style="color:var(--text-primary);">MacBook Pro · Algiers</p>
+                            <p class="text-xs" style="color:var(--text-muted);">Current session · Last active now</p>
+                          </div>
+                          <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <p class="text-xs font-medium" style="color:var(--text-primary);">iPhone 15 · Algiers</p>
+                            <p class="text-xs" style="color:var(--text-muted);">Last active 2 hours ago</p>
+                          </div>
+                          <button class="text-xs font-medium cursor-pointer" style="background:transparent; border:none; color:var(--badge-red-text); font-family:var(--font-sans);">Revoke</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- ─── BILLING TAB ─── -->
+                @if (settingsTab() === 'billing') {
+                  <div class="space-y-4">
+                    <!-- Current plan -->
+                    <div class="rounded-xl p-5" style="background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+                      <div class="flex items-center justify-between mb-2">
+                        <div>
+                          <p class="text-sm font-bold" style="color:#fff;">Premium Plan</p>
+                          <p class="text-xs" style="color:rgba(255,255,255,0.7);">$29/month · Renews Apr 15, 2026</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.2); color:#fff;">Active</span>
+                      </div>
+                      <p class="text-xs mb-3" style="color:rgba(255,255,255,0.65);">Unlimited projects, priority support, AI recommendations, and advanced analytics.</p>
+                      <div class="flex items-center gap-2">
+                        <button class="text-xs font-semibold rounded-lg cursor-pointer" style="background:#fff; color:#1C4FC3; border:none; padding:6px 14px; font-family:var(--font-sans);">Upgrade</button>
+                        <button class="text-xs font-semibold rounded-lg cursor-pointer" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:6px 14px; font-family:var(--font-sans);">Manage</button>
+                      </div>
+                    </div>
+
+                    <!-- Payment method -->
+                    <div class="rounded-xl p-4" style="background:var(--surface-subtle);">
+                      <h4 class="text-sm font-semibold mb-3" style="color:var(--text-primary);">Payment Method</h4>
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <div class="flex items-center justify-center rounded-lg" style="width:40px; height:28px; background:var(--surface); border:1px solid var(--border);">
+                            <ng-icon name="lucideCreditCard" [size]="'16'" style="color:var(--text-secondary);" />
+                          </div>
+                          <div>
+                            <p class="text-xs font-medium" style="color:var(--text-primary);">Visa ending in 4242</p>
+                            <p class="text-xs" style="color:var(--text-muted);">Expires 12/2027</p>
+                          </div>
+                        </div>
+                        <button class="text-xs font-semibold cursor-pointer" style="background:transparent; border:none; color:#1C4FC3; font-family:var(--font-sans);">Change</button>
+                      </div>
+                    </div>
+
+                    <!-- Invoice history -->
+                    <div class="rounded-xl p-4" style="background:var(--surface-subtle);">
+                      <h4 class="text-sm font-semibold mb-3" style="color:var(--text-primary);">Recent Invoices</h4>
+                      <div class="space-y-2">
+                        @for (inv of invoiceHistory; track inv.date) {
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <p class="text-xs font-medium" style="color:var(--text-primary);">{{ inv.date }}</p>
+                              <p class="text-xs" style="color:var(--text-muted);">{{ inv.plan }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                              <span class="text-xs font-semibold" style="color:var(--text-primary);">{{ inv.amount }}</span>
+                              <button class="text-xs font-medium cursor-pointer" style="background:transparent; border:none; color:#1C4FC3; font-family:var(--font-sans);">PDF</button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- ─── DANGER ZONE TAB ─── -->
+                @if (settingsTab() === 'danger') {
+                  <div class="space-y-4">
+                    <div class="rounded-xl p-4" style="background:var(--surface-subtle); border:1px solid var(--border);">
+                      <h4 class="text-sm font-semibold mb-1" style="color:var(--text-primary);">Export Data</h4>
+                      <p class="text-xs mb-3" style="color:var(--text-muted);">Download a copy of all your data including projects, contacts, and documents.</p>
+                      <button class="text-xs font-semibold rounded-lg cursor-pointer" style="background:var(--surface); border:1px solid var(--border); color:var(--text-body); padding:6px 14px; font-family:var(--font-sans);">Request Export</button>
+                    </div>
+                    <div class="rounded-xl p-4" style="border:1px solid var(--badge-red-text);">
+                      <div class="flex items-center gap-2 mb-1">
+                        <ng-icon name="lucideTrash2" [size]="'14'" style="color:var(--badge-red-text);" />
+                        <h4 class="text-sm font-semibold" style="color:var(--badge-red-text);">Delete Account</h4>
+                      </div>
+                      <p class="text-xs mb-3" style="color:var(--text-muted);">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                      <button class="text-xs font-semibold rounded-lg cursor-pointer" style="background:#FEF2F2; border:1px solid var(--badge-red-text); color:var(--badge-red-text); padding:6px 14px; font-family:var(--font-sans);">Delete My Account</button>
+                    </div>
+                  </div>
+                }
+
+              </div>
             </div>
           </div>
         </div>
@@ -509,6 +735,27 @@ export class LayoutComponent {
   protected readonly showSettings     = signal(false);
   protected readonly showNotifications = signal(false);
   protected readonly mobileNavOpen = signal(false);
+  protected readonly settingsTab = signal<string>('profile');
+  protected compactMode = false;
+
+  protected readonly settingsTabs = [
+    { id: 'profile',       label: 'Profile',       icon: 'lucideUser' },
+    { id: 'appearance',    label: 'Appearance',     icon: 'lucideSun' },
+    { id: 'notifications', label: 'Notifications',  icon: 'lucideBell' },
+    { id: 'security',      label: 'Security',       icon: 'lucideKey' },
+    { id: 'billing',       label: 'Billing',        icon: 'lucideCreditCard' },
+    { id: 'danger',        label: 'Danger Zone',    icon: 'lucideTrash2' },
+  ];
+
+  protected readonly invoiceHistory = [
+    { date: 'Mar 1, 2026', amount: '€29.00', status: 'Paid', plan: 'Premium Plan' },
+    { date: 'Feb 1, 2026', amount: '€29.00', status: 'Paid', plan: 'Premium Plan' },
+    { date: 'Jan 1, 2026', amount: '€29.00', status: 'Paid', plan: 'Premium Plan' },
+  ];
+
+  protected readonly activeSettingsLabel = computed(() =>
+    this.settingsTabs.find(t => t.id === this.settingsTab())?.label ?? ''
+  );
 
   protected readonly themes = [
     { id: 'light' as const, label: 'Light', icon: 'lucideSun' },

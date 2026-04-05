@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideScale, lucideCheckCircle, lucideCircle, lucideAlertCircle,
   lucideFileText, lucideDownload, lucideBell, lucideChevronRight,
-  lucidePlus, lucideExternalLink,
+  lucidePlus, lucideExternalLink, lucideX,
 } from '@ng-icons/lucide';
 
 interface Step { label: string; done: boolean; alert: boolean; due: string; }
@@ -16,7 +16,7 @@ interface Document { name: string; type: string; date: string; size: string; }
   providers: [provideIcons({
     lucideScale, lucideCheckCircle, lucideCircle, lucideAlertCircle,
     lucideFileText, lucideDownload, lucideBell, lucideChevronRight,
-    lucidePlus, lucideExternalLink,
+    lucidePlus, lucideExternalLink, lucideX,
   })],
   template: `
     <div class="page-shell">
@@ -32,7 +32,7 @@ interface Document { name: string; type: string; date: string; size: string; }
             style="background:var(--surface); color:var(--text-body); border-color:var(--border); padding:7px 14px;">
             Download All
           </button>
-          <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
+          <button (click)="showNewProcedure.set(true)" class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucidePlus" [size]="'14'" />
             New Procedure
@@ -164,10 +164,73 @@ interface Document { name: string; type: string; date: string; size: string; }
           </div>
         </div>
       </div>
+
+      <!-- New Procedure Modal -->
+      @if (showNewProcedure()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="New Procedure">
+          <div class="modal-backdrop" (click)="showNewProcedure.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">New Procedure</h2>
+              <button (click)="showNewProcedure.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Procedure Name</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter procedure name" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Type</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                    <option value="">Select type</option>
+                    <option>Registration</option>
+                    <option>Application</option>
+                    <option>Filing</option>
+                    <option>License</option>
+                  </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Due Date</label>
+                    <input type="date" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Priority</label>
+                    <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                      <option>High</option>
+                      <option>Medium</option>
+                      <option>Low</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+                  <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Describe the procedure..."></textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Attach Document</label>
+                  <div class="flex items-center gap-3 rounded-lg p-3 cursor-pointer" style="background:var(--surface-input); border:1.5px dashed var(--border);">
+                    <ng-icon name="lucideFileText" [size]="'16'" style="color:var(--text-muted);" />
+                    <span class="text-xs" style="color:var(--text-muted);">Click to upload or drag &amp; drop</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showNewProcedure.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+              <button (click)="showNewProcedure.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Create Procedure</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
 })
 export class LegalComponent {
+  protected readonly showNewProcedure = signal(false);
   protected readonly steps: Step[] = [
     { label: 'Choose business structure (SARL, SPA...)',       done: true,  alert: false, due: 'Completed'    },
     { label: 'Register trade name with CNRC',                  done: true,  alert: false, due: 'Completed'    },

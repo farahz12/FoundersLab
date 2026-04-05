@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideUsers, lucideMessageSquare, lucideHeart, lucideEye,
   lucidePlus, lucideArrowRight, lucideStar, lucideBriefcase,
-  lucideMapPin, lucideCalendar, lucideThumbsUp,
+  lucideMapPin, lucideCalendar, lucideThumbsUp, lucideX,
 } from '@ng-icons/lucide';
 
 interface Forum { title: string; category: string; replies: number; views: number; author: string; initials: string; color: string; time: string; }
@@ -17,7 +17,7 @@ interface Opportunity { title: string; type: string; company: string; location: 
   providers: [provideIcons({
     lucideUsers, lucideMessageSquare, lucideHeart, lucideEye,
     lucidePlus, lucideArrowRight, lucideStar, lucideBriefcase,
-    lucideMapPin, lucideCalendar, lucideThumbsUp,
+    lucideMapPin, lucideCalendar, lucideThumbsUp, lucideX,
   })],
   template: `
     <div class="page-shell">
@@ -29,7 +29,7 @@ interface Opportunity { title: string; type: string; company: string; location: 
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Connect, share and grow with the ecosystem</p>
         </div>
         <div class="page-header-actions">
-          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+          <button (click)="showNewDiscussion.set(true)" class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucidePlus" [size]="'14'" />
             New Discussion
@@ -159,10 +159,52 @@ interface Opportunity { title: string; type: string; company: string; location: 
           </div>
         </div>
       </div>
+
+      <!-- New Discussion Modal -->
+      @if (showNewDiscussion()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="New Discussion">
+          <div class="modal-backdrop" (click)="showNewDiscussion.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">New Discussion</h2>
+              <button (click)="showNewDiscussion.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="flex flex-col gap-4">
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Title</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter discussion title" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Category</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                    <option value="">Select a category</option>
+                    <option value="FinTech">FinTech</option>
+                    <option value="CleanTech">CleanTech</option>
+                    <option value="EdTech">EdTech</option>
+                    <option value="General">General</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Content</label>
+                  <textarea rows="5" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Write your discussion content..."></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showNewDiscussion.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+              <button (click)="showNewDiscussion.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Post Discussion</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
 })
 export class CommunityComponent {
+  protected readonly showNewDiscussion = signal(false);
   protected selectedCategory = 'All';
   protected readonly categories = ['All', 'FinTech', 'CleanTech', 'EdTech'];
 

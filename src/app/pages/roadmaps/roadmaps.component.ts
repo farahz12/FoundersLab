@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideMap, lucidePlus, lucideCheck, lucideCircle, lucideClock,
   lucideCalendar, lucideEdit, lucideTrash, lucideArrowRight,
-  lucideTarget, lucideZap, lucideFlag,
+  lucideTarget, lucideZap, lucideFlag, lucideX,
 } from '@ng-icons/lucide';
 
 interface RoadmapStep {
@@ -22,7 +22,7 @@ interface RoadmapStep {
   providers: [provideIcons({
     lucideMap, lucidePlus, lucideCheck, lucideCircle, lucideClock,
     lucideCalendar, lucideEdit, lucideTrash, lucideArrowRight,
-    lucideTarget, lucideZap, lucideFlag,
+    lucideTarget, lucideZap, lucideFlag, lucideX,
   })],
   template: `
     <div class="page-shell">
@@ -39,7 +39,7 @@ interface RoadmapStep {
             <ng-icon name="lucideCalendar" [size]="'13'" style="display:inline; margin-right:4px;" />
             Calendar View
           </button>
-          <button class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
+          <button (click)="showAddStep.set(true)" class="flex items-center gap-1.5 text-xs font-semibold rounded-lg border-none cursor-pointer"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucidePlus" [size]="'14'" />
             Add Step
@@ -135,7 +135,7 @@ interface RoadmapStep {
                     <ng-icon name="lucideCalendar" [size]="'11'" />
                     {{ step.dueDate }}
                   </div>
-                  <button class="flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  <button (click)="selectedStep.set(step); showEditStep.set(true)" class="flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"
                     [attr.aria-label]="'Edit ' + step.title">
                     <ng-icon name="lucideEdit" [size]="'13'" />
@@ -169,10 +169,107 @@ interface RoadmapStep {
           </div>
         }
       </div>
+
+      <!-- Add Step Modal -->
+      @if (showAddStep()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Add Step">
+          <div class="modal-backdrop" (click)="showAddStep.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">Add New Step</h2>
+              <button (click)="showAddStep.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Phase</label>
+                    <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="e.g. Phase 6" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Due Date</label>
+                    <input type="date" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Title</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Step title" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+                  <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Describe this phase..."></textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Tasks (one per line)</label>
+                  <textarea rows="4" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Task 1&#10;Task 2&#10;Task 3"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showAddStep.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+              <button (click)="showAddStep.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Add Step</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Edit Step Modal -->
+      @if (showEditStep()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" [attr.aria-label]="'Edit: ' + (selectedStep()?.title ?? '')">
+          <div class="modal-backdrop" (click)="showEditStep.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">Edit Step</h2>
+              <button (click)="showEditStep.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Phase</label>
+                    <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" [value]="selectedStep()?.phase ?? ''" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Due Date</label>
+                    <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" [value]="selectedStep()?.dueDate ?? ''" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Title</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" [value]="selectedStep()?.title ?? ''" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+                  <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;">{{ selectedStep()?.description }}</textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Status</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                    <option [selected]="selectedStep()?.status === 'completed'">Completed</option>
+                    <option [selected]="selectedStep()?.status === 'in-progress'">In Progress</option>
+                    <option [selected]="selectedStep()?.status === 'pending'">Pending</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showEditStep.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+              <button (click)="showEditStep.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
 })
 export class RoadmapsComponent {
+  protected readonly showAddStep = signal(false);
+  protected readonly showEditStep = signal(false);
+  protected readonly selectedStep = signal<RoadmapStep | null>(null);
   protected readonly steps: RoadmapStep[] = [
     {
       phase: 'Phase 1', title: 'Validate Product-Market Fit', dueDate: 'Feb 28, 2026', status: 'completed',

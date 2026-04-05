@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideCalendar, lucidePlus, lucideMapPin, lucideUsers, lucideVideo,
-  lucideClock, lucideSearch, lucideEdit,
+  lucideClock, lucideSearch, lucideEdit, lucideX,
 } from '@ng-icons/lucide';
 
 interface Event {
@@ -27,7 +27,7 @@ interface Event {
   imports: [NgIconComponent],
   providers: [provideIcons({
     lucideCalendar, lucidePlus, lucideMapPin, lucideUsers, lucideVideo,
-    lucideClock, lucideSearch, lucideEdit,
+    lucideClock, lucideSearch, lucideEdit, lucideX,
   })],
   template: `
     <div class="page-shell">
@@ -39,7 +39,7 @@ interface Event {
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage webinars, workshops, pitch sessions &amp; more</p>
         </div>
         <div class="page-header-actions">
-          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-opacity hover:opacity-90 sm:w-auto"
+          <button (click)="showCreateModal.set(true)" class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-opacity hover:opacity-90 sm:w-auto"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucidePlus" [size]="'14'" />
             Create Event
@@ -188,17 +188,17 @@ interface Event {
                 <!-- Action -->
                 <div class="flex items-center gap-2">
                   @if (event.status === 'Upcoming') {
-                    <button class="flex-1 text-xs font-semibold rounded-xl border-none cursor-pointer transition-opacity hover:opacity-90"
+                    <button (click)="selectedEvent.set(event); showDetailModal.set(true)" class="flex-1 text-xs font-semibold rounded-xl border-none cursor-pointer transition-opacity hover:opacity-90"
                       style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px;">
                       Register Now
                     </button>
                   } @else {
-                    <button class="flex-1 text-xs font-semibold rounded-xl cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                    <button (click)="selectedEvent.set(event); showDetailModal.set(true)" class="flex-1 text-xs font-semibold rounded-xl cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                       style="background:var(--surface-subtle); color:var(--text-secondary); border:none; padding:8px;">
                       View Details
                     </button>
                   }
-                  <button class="flex items-center justify-center rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                  <button (click)="selectedEvent.set(event); showDetailModal.set(true)" class="flex items-center justify-center rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                     style="width:34px; height:34px; background:var(--surface-subtle); border:none; cursor:pointer; color:var(--text-muted); flex-shrink:0;"
                     [attr.aria-label]="'Edit ' + event.title">
                     <ng-icon name="lucideEdit" [size]="'14'" />
@@ -264,7 +264,7 @@ interface Event {
                     </div>
                   </div>
                   @if (event.status === 'Upcoming') {
-                    <button class="w-full text-xs font-semibold rounded-lg border-none cursor-pointer flex-shrink-0 lg:w-auto"
+                    <button (click)="selectedEvent.set(event); showDetailModal.set(true)" class="w-full text-xs font-semibold rounded-lg border-none cursor-pointer flex-shrink-0 lg:w-auto"
                       style="background:var(--badge-purple-bg); color:#1C4FC3; padding:7px 14px;">Register</button>
                   }
                 </div>
@@ -274,10 +274,175 @@ interface Event {
         </div>
       }
     </div>
+
+    <!-- Create Event Modal -->
+    @if (showCreateModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Create Event">
+        <div class="modal-backdrop" (click)="showCreateModal.set(false)"></div>
+        <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+            <h2 class="text-base font-bold" style="color:var(--text-primary);">Create New Event</h2>
+            <button (click)="showCreateModal.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+              <ng-icon name="lucideX" [size]="'16'" />
+            </button>
+          </div>
+          <!-- Body -->
+          <div style="padding:24px; overflow-y:auto; flex:1;">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Event Title</label>
+                <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter event title" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Type</label>
+                <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                  <option value="">Select type</option>
+                  <option value="Pitch">Pitch</option>
+                  <option value="Workshop">Workshop</option>
+                  <option value="Webinar">Webinar</option>
+                  <option value="Bootcamp">Bootcamp</option>
+                  <option value="Conference">Conference</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Date</label>
+                  <input type="date" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Time</label>
+                  <input type="time" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Location</label>
+                <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter location" />
+              </div>
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold" style="color:var(--text-secondary);">Online Event</label>
+                <button (click)="isOnlineToggle.set(!isOnlineToggle())" class="relative rounded-full transition-colors flex-shrink-0" [style.background]="isOnlineToggle() ? '#1C4FC3' : '#D1D5DB'" style="width:40px; height:22px; border:none; cursor:pointer;" role="switch" [attr.aria-checked]="isOnlineToggle()" aria-label="Online event">
+                  <span class="absolute top-0.5 rounded-full transition-transform" style="width:18px; height:18px; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,0.2);" [style.transform]="isOnlineToggle() ? 'translateX(20px)' : 'translateX(2px)'"></span>
+                </button>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Capacity</label>
+                <input type="number" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter max capacity" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+                <textarea class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); min-height:80px; resize:vertical;" placeholder="Describe the event"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Tags</label>
+                <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter tags separated by commas" />
+              </div>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+            <button (click)="showCreateModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+            <button (click)="showCreateModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Create Event</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- View Event Detail Modal -->
+    @if (showDetailModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" [attr.aria-label]="selectedEvent()?.title ?? 'Event Details'">
+        <div class="modal-backdrop" (click)="showDetailModal.set(false)"></div>
+        <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(580px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+          <!-- Header with gradient banner -->
+          <div class="relative" style="padding:24px 24px 20px; background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+            <button (click)="showDetailModal.set(false)" class="absolute top-4 right-4 flex items-center justify-center rounded-lg transition-colors" style="width:32px; height:32px; background:rgba(255,255,255,0.15); border:none; cursor:pointer; color:#fff;" aria-label="Close">
+              <ng-icon name="lucideX" [size]="'16'" />
+            </button>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.2); color:#fff;">{{ selectedEvent()?.type }}</span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.15); color:#fff;">{{ selectedEvent()?.status }}</span>
+            </div>
+            <h2 class="text-lg font-bold" style="color:#fff; letter-spacing:-0.02em;">{{ selectedEvent()?.title }}</h2>
+            <p class="text-xs mt-1" style="color:rgba(255,255,255,0.7);">Organized by {{ selectedEvent()?.organizer }}</p>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:20px 24px; overflow-y:auto; flex:1;">
+            <div class="space-y-3">
+              <!-- Date & Time -->
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideCalendar" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Date &amp; Time</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ selectedEvent()?.date }} · {{ selectedEvent()?.time }}</p>
+                </div>
+              </div>
+
+              <!-- Location -->
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                @if (selectedEvent()?.isOnline) {
+                  <ng-icon name="lucideVideo" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                } @else {
+                  <ng-icon name="lucideMapPin" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                }
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Location</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ selectedEvent()?.isOnline ? 'Online' : selectedEvent()?.location }}</p>
+                </div>
+              </div>
+
+              <!-- Capacity -->
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideUsers" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div class="flex-1">
+                  <p class="text-xs" style="color:var(--text-muted);">Capacity</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ selectedEvent()?.registered }} / {{ selectedEvent()?.capacity }} registered</p>
+                  <div class="mt-1.5" style="height:4px; background:var(--border); border-radius:99px; overflow:hidden;">
+                    <div style="height:100%; border-radius:99px;" [style.width.%]="((selectedEvent()?.registered ?? 0) / (selectedEvent()?.capacity ?? 1)) * 100" [style.background]="((selectedEvent()?.registered ?? 0) / (selectedEvent()?.capacity ?? 1)) > 0.85 ? 'linear-gradient(90deg,#059669,#34D399)' : 'linear-gradient(90deg,#1C4FC3,#1D1384)'"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div>
+                <p class="text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</p>
+                <p class="text-sm leading-relaxed" style="color:var(--text-body);">{{ selectedEvent()?.description }}</p>
+              </div>
+
+              <!-- Tags -->
+              <div>
+                <p class="text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Tags</p>
+                <div class="flex items-center flex-wrap gap-1.5">
+                  @for (tag of selectedEvent()?.tags ?? []; track tag) {
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:var(--surface-subtle); color:var(--text-secondary);">{{ tag }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          @if (selectedEvent()?.status === 'Upcoming') {
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showDetailModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Close</button>
+              <button (click)="showDetailModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Register</button>
+            </div>
+          } @else {
+            <div class="flex items-center justify-end px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showDetailModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Close</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
   `,
 })
 export class EventsComponent {
   protected readonly Math = Math;
+  protected readonly showCreateModal = signal(false);
+  protected readonly showDetailModal = signal(false);
+  protected readonly selectedEvent = signal<Event | null>(null);
+  protected readonly isOnlineToggle = signal(false);
   protected readonly searchQ   = signal('');
   protected readonly typeFilter = signal('All');
   protected readonly viewMode   = signal('grid');

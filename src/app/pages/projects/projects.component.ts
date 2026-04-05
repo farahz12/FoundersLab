@@ -3,7 +3,7 @@ import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideRocket, lucidePlus, lucideSearch, lucideFilter,
   lucideStar, lucideEye, lucideEdit, lucideChevronRight,
-  lucideArrowUp, lucideArrowDown, lucideTrendingUp,
+  lucideArrowUp, lucideArrowDown, lucideTrendingUp, lucideX,
 } from '@ng-icons/lucide';
 
 interface Startup {
@@ -27,7 +27,7 @@ interface Startup {
   providers: [provideIcons({
     lucideRocket, lucidePlus, lucideSearch, lucideFilter,
     lucideStar, lucideEye, lucideEdit, lucideChevronRight,
-    lucideArrowUp, lucideArrowDown, lucideTrendingUp,
+    lucideArrowUp, lucideArrowDown, lucideTrendingUp, lucideX,
   })],
   template: `
     <div class="page-shell">
@@ -40,6 +40,7 @@ interface Startup {
         </div>
         <div class="page-header-actions">
           <button
+            (click)="showCreateModal.set(true)"
             class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-all hover:opacity-90 sm:w-auto"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;"
             aria-label="Add new project"
@@ -136,12 +137,12 @@ interface Startup {
             <div class="flex items-center justify-between" style="border-top:1px solid var(--border-subtle); padding-top:12px;">
               <span class="text-xs font-semibold" style="color:var(--badge-green-text);">{{ s.raised }}</span>
               <div class="flex items-center gap-2">
-                <button class="flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                <button (click)="selectedProject.set(s); showViewModal.set(true)" class="flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   style="width:28px; height:28px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"
                   [attr.aria-label]="'View ' + s.name">
                   <ng-icon name="lucideEye" [size]="'14'" />
                 </button>
-                <button class="flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors"
+                <button (click)="selectedProject.set(s); showEditModal.set(true)" class="flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors"
                   style="width:28px; height:28px; background:transparent; border:none; cursor:pointer; color:#1C4FC3;"
                   [attr.aria-label]="'Edit ' + s.name">
                   <ng-icon name="lucideEdit" [size]="'14'" />
@@ -151,6 +152,194 @@ interface Startup {
           </div>
         }
       </div>
+
+      <!-- Create Project Modal -->
+      @if (showCreateModal()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Create New Project">
+          <div class="modal-backdrop" (click)="showCreateModal.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">Create New Project</h2>
+              <button (click)="showCreateModal.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Project Name</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter project name" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Founder</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter founder name" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Sector</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                    <option value="">Select sector</option>
+                    <option>FinTech</option>
+                    <option>CleanTech</option>
+                    <option>HealthTech</option>
+                    <option>AgriTech</option>
+                    <option>EdTech</option>
+                    <option>Logistics</option>
+                    <option>Cybersecurity</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Stage</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                    <option value="">Select stage</option>
+                    <option>Pre-seed</option>
+                    <option>Seed</option>
+                    <option>Series A</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+                  <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Describe your project..."></textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Team Size</label>
+                  <input type="number" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter team size" />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showCreateModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+              <button (click)="showCreateModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Create Project</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- View Project Detail Modal -->
+      @if (showViewModal() && selectedProject()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" [attr.aria-label]="'View ' + selectedProject()!.name">
+          <div class="modal-backdrop" (click)="showViewModal.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(580px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">Project Details</h2>
+              <button (click)="showViewModal.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="flex items-center justify-center rounded-xl flex-shrink-0" [style.background]="selectedProject()!.color + '22'" style="width:48px; height:48px; font-size:15px; font-weight:700;" [style.color]="selectedProject()!.color">
+                  {{ selectedProject()!.initials }}
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold" style="color:var(--text-primary);">{{ selectedProject()!.name }}</h3>
+                  <p class="text-xs" style="color:var(--text-muted);">{{ selectedProject()!.founder }}</p>
+                </div>
+                <span class="ml-auto text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0" [style.background]="statusBg(selectedProject()!.status)" [style.color]="statusColor(selectedProject()!.status)">
+                  {{ selectedProject()!.status }}
+                </span>
+              </div>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <span class="block text-xs font-semibold mb-1" style="color:var(--text-muted);">Sector</span>
+                    <span class="text-sm font-medium" style="color:var(--text-primary);">{{ selectedProject()!.sector }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-xs font-semibold mb-1" style="color:var(--text-muted);">Stage</span>
+                    <span class="text-sm font-medium" style="color:var(--text-primary);">{{ selectedProject()!.stage }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-xs font-semibold mb-1" style="color:var(--text-muted);">Team Size</span>
+                    <span class="text-sm font-medium" style="color:var(--text-primary);">{{ selectedProject()!.team }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-xs font-semibold mb-1" style="color:var(--text-muted);">Raised</span>
+                    <span class="text-sm font-semibold" style="color:var(--badge-green-text);">{{ selectedProject()!.raised }}</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="block text-xs font-semibold mb-1" style="color:var(--text-muted);">AI Score</span>
+                  <div class="flex items-center gap-3">
+                    <div style="flex:1; height:6px; background:var(--surface-subtle); border-radius:99px; overflow:hidden;">
+                      <div style="height:100%; border-radius:99px; transition:width 0.6s cubic-bezier(.4,0,.2,1);" [style.width.%]="selectedProject()!.score" [style.background]="selectedProject()!.score >= 80 ? 'linear-gradient(90deg,#059669,#34D399)' : selectedProject()!.score >= 65 ? 'linear-gradient(90deg,#D97706,#FBBF24)' : 'linear-gradient(90deg,#DC2626,#F87171)'"></div>
+                    </div>
+                    <span class="text-sm font-bold" [style.color]="selectedProject()!.score >= 80 ? 'var(--badge-green-text)' : selectedProject()!.score >= 65 ? 'var(--badge-amber-text)' : 'var(--badge-red-text)'">{{ selectedProject()!.score }}/100</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="block text-xs font-semibold mb-1" style="color:var(--text-muted);">Description</span>
+                  <p class="text-sm leading-relaxed" style="color:var(--text-secondary);">{{ selectedProject()!.description }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showViewModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Close</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Edit Project Modal -->
+      @if (showEditModal() && selectedProject()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" [attr.aria-label]="'Edit ' + selectedProject()!.name">
+          <div class="modal-backdrop" (click)="showEditModal.set(false)"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+            <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+              <h2 class="text-base font-bold" style="color:var(--text-primary);">Edit Project</h2>
+              <button (click)="showEditModal.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+            </div>
+            <div style="padding:24px; overflow-y:auto; flex:1;">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Project Name</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" [value]="selectedProject()!.name" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Founder</label>
+                  <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" [value]="selectedProject()!.founder" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Sector</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" [value]="selectedProject()!.sector">
+                    <option value="">Select sector</option>
+                    <option [selected]="selectedProject()!.sector === 'FinTech'">FinTech</option>
+                    <option [selected]="selectedProject()!.sector === 'CleanTech'">CleanTech</option>
+                    <option [selected]="selectedProject()!.sector === 'HealthTech'">HealthTech</option>
+                    <option [selected]="selectedProject()!.sector === 'AgriTech'">AgriTech</option>
+                    <option [selected]="selectedProject()!.sector === 'EdTech'">EdTech</option>
+                    <option [selected]="selectedProject()!.sector === 'Logistics'">Logistics</option>
+                    <option [selected]="selectedProject()!.sector === 'Cybersecurity'">Cybersecurity</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Stage</label>
+                  <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" [value]="selectedProject()!.stage">
+                    <option value="">Select stage</option>
+                    <option [selected]="selectedProject()!.stage === 'Pre-seed'">Pre-seed</option>
+                    <option [selected]="selectedProject()!.stage === 'Seed'">Seed</option>
+                    <option [selected]="selectedProject()!.stage === 'Series A'">Series A</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+                  <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;">{{ selectedProject()!.description }}</textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Team Size</label>
+                  <input type="number" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" [value]="selectedProject()!.team" />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+              <button (click)="showEditModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+              <button (click)="showEditModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Save</button>
+            </div>
+          </div>
+        </div>
+      }
+
     </div>
   `,
 })
@@ -158,6 +347,11 @@ export class ProjectsComponent {
   protected readonly searchQuery = signal('');
   protected readonly stageFilter = signal('All');
   protected readonly stageFilters = ['All', 'Pre-seed', 'Seed', 'Series A'];
+
+  protected readonly showCreateModal = signal(false);
+  protected readonly showViewModal = signal(false);
+  protected readonly showEditModal = signal(false);
+  protected readonly selectedProject = signal<Startup | null>(null);
 
   protected readonly startups: Startup[] = [
     { name: 'TechFlow',      founder: 'Karim Bensalem',  sector: 'FinTech',      stage: 'Seed',     score: 87, status: 'Active', description: 'AI-powered financial management platform for SMEs, automating invoicing, cash flow forecasting, and compliance reporting.', team: 6,  raised: '$240K raised', initials: 'TF', color: '#1C4FC3' },

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideTrendingUp, lucidePlus, lucideFilter, lucideSearch,
@@ -28,7 +28,7 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
           <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Track investor matching and funding opportunities</p>
         </div>
         <div class="page-header-actions">
-          <button class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+          <button (click)="showCriteriaModal.set(true)" class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucidePlus" [size]="'14'" />
             Set Investment Criteria
@@ -143,8 +143,9 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
                     }
                     {{ req.status }}
                   </span>
-                  <button class="flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);">
+                  <button (click)="selectedRequest.set(req); showRequestModal.set(true)" class="flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"
+                    aria-label="View request detail">
                     <ng-icon name="lucideEye" [size]="'13'" />
                   </button>
                 </div>
@@ -154,9 +155,164 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
         </div>
       </div>
     </div>
+
+    <!-- Set Investment Criteria Modal -->
+    @if (showCriteriaModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Set Investment Criteria">
+        <div class="modal-backdrop" (click)="showCriteriaModal.set(false)"></div>
+        <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+          <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+            <h2 class="text-base font-bold" style="color:var(--text-primary);">Set Investment Criteria</h2>
+            <button (click)="showCriteriaModal.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+              <ng-icon name="lucideX" [size]="'16'" />
+            </button>
+          </div>
+          <div style="padding:24px; overflow-y:auto; flex:1;" class="flex flex-col gap-4">
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Startup Name</label>
+              <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter startup name" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Sector Focus</label>
+              <div class="flex flex-wrap gap-2">
+                @for (sector of sectorOptions; track sector) {
+                  <label class="flex items-center gap-1.5 text-xs font-medium cursor-pointer rounded-lg px-3 py-1.5" style="background:var(--surface-subtle); color:var(--text-body);">
+                    <input type="checkbox" class="accent-blue-600" />
+                    {{ sector }}
+                  </label>
+                }
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Min Ticket</label>
+                <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="$50K" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Max Ticket</label>
+                <input type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="$500K" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Preferred Stage</label>
+              <select class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                <option value="">Select stage</option>
+                <option value="pre-seed">Pre-seed</option>
+                <option value="seed">Seed</option>
+                <option value="series-a">Series A</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Notes</label>
+              <textarea class="w-full text-sm rounded-lg border focus:outline-none resize-none" rows="3" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Additional notes..."></textarea>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+            <button (click)="showCriteriaModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+            <button (click)="showCriteriaModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Save</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- View Request Detail Modal -->
+    @if (showRequestModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="View Request Detail">
+        <div class="modal-backdrop" (click)="showRequestModal.set(false)"></div>
+        <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(520px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:85vh; display:flex; flex-direction:column;">
+          <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+            <h2 class="text-base font-bold" style="color:var(--text-primary);">Request Detail</h2>
+            <button (click)="showRequestModal.set(false)" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+              <ng-icon name="lucideX" [size]="'16'" />
+            </button>
+          </div>
+          <div style="padding:24px; overflow-y:auto; flex:1;" class="flex flex-col gap-3">
+            @if (selectedRequest(); as req) {
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideBuilding" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Startup</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ req.startup }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideStar" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Investor</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ req.investor }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideTrendingUp" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Status</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                      [style.background]="req.status === 'Accepted' ? 'var(--badge-green-bg)' : req.status === 'Declined' ? 'var(--badge-red-bg)' : 'var(--badge-amber-bg)'"
+                      [style.color]="req.status === 'Accepted' ? 'var(--badge-green-text)' : req.status === 'Declined' ? 'var(--badge-red-text)' : 'var(--badge-amber-text)'">
+                      {{ req.status }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideClock" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Date</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ req.date }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
+                <ng-icon name="lucideDollarSign" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
+                <div>
+                  <p class="text-xs" style="color:var(--text-muted);">Amount</p>
+                  <p class="text-sm font-medium" style="color:var(--text-primary);">{{ req.amount }}</p>
+                </div>
+              </div>
+
+              <!-- Timeline -->
+              <div class="mt-2">
+                <p class="text-xs font-semibold mb-3" style="color:var(--text-secondary);">Request Timeline</p>
+                <div class="flex flex-col gap-3 pl-3" style="border-left:2px solid var(--border-subtle);">
+                  @for (step of requestTimeline; track step.label) {
+                    <div class="flex items-start gap-3 relative">
+                      <div class="flex items-center justify-center rounded-full flex-shrink-0" style="width:24px; height:24px; margin-left:-15px;"
+                        [style.background]="step.done ? '#1C4FC3' : 'var(--surface-subtle)'"
+                        [style.color]="step.done ? '#fff' : 'var(--text-muted)'">
+                        <ng-icon name="lucideCheck" [size]="'12'" />
+                      </div>
+                      <div>
+                        <p class="text-sm font-medium" style="color:var(--text-primary);">{{ step.label }}</p>
+                        <p class="text-xs" style="color:var(--text-muted);">{{ step.date }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+            <button (click)="showRequestModal.set(false)" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">Close</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
 })
 export class InvestmentsComponent {
+  protected showCriteriaModal = signal(false);
+  protected showRequestModal = signal(false);
+  protected selectedRequest = signal<Request | null>(null);
+
+  protected readonly sectorOptions = ['FinTech', 'CleanTech', 'HealthTech', 'AgriTech', 'EdTech', 'Logistics', 'Cybersecurity'];
+  protected readonly requestTimeline = [
+    { label: 'Interest Submitted', date: 'Mar 25, 2026', done: true },
+    { label: 'Under Review', date: 'Mar 27, 2026', done: true },
+    { label: 'Due Diligence', date: 'Mar 30, 2026', done: true },
+    { label: 'Terms Negotiation', date: 'Apr 2, 2026', done: false },
+    { label: 'Deal Closed', date: 'Pending', done: false },
+  ];
+
   protected statusFilter = 'All';
   protected readonly statusFilters = ['All', 'Pending', 'Accepted', 'Declined'];
 
