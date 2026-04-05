@@ -321,8 +321,8 @@ interface Event {
               </div>
               <div class="flex items-center justify-between">
                 <label class="text-xs font-semibold" style="color:var(--text-secondary);">Online Event</label>
-                <button (click)="isOnlineToggle.set(!isOnlineToggle())" class="relative rounded-full transition-colors flex-shrink-0" [style.background]="isOnlineToggle() ? '#1C4FC3' : '#D1D5DB'" style="width:40px; height:22px; border:none; cursor:pointer;" role="switch" [attr.aria-checked]="isOnlineToggle()" aria-label="Online event">
-                  <span class="absolute top-0.5 rounded-full transition-transform" style="width:18px; height:18px; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,0.2);" [style.transform]="isOnlineToggle() ? 'translateX(20px)' : 'translateX(2px)'"></span>
+                <button (click)="isOnlineToggle.set(!isOnlineToggle())" class="toggle-switch" role="switch" [attr.aria-checked]="isOnlineToggle()" aria-label="Online event">
+                  <span class="toggle-knob"></span>
                 </button>
               </div>
               <div>
