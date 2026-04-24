@@ -12,8 +12,8 @@ interface Opportunity { title: string; type: string; company: string; location: 
 
 @Component({
   selector: 'app-community',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideUsers, lucideMessageSquare, lucideHeart, lucideEye,
     lucidePlus, lucideArrowRight, lucideStar, lucideBriefcase,

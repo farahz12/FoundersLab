@@ -3,8 +3,8 @@ import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-auth-layout',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet],
   template: `
     <div class="flex min-h-screen">
       <!-- ══ LEFT — Hero image ══ -->

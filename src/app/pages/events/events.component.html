@@ -1,0 +1,1862 @@
+<div class="page-shell">
+
+  <!-- ═══ ADMIN HEADER (creators/admins only) ═══ -->
+  @if (canCreate()) {
+    <div class="page-header">
+      <div>
+        <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Events</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage webinars, workshops, pitch sessions &amp; more</p>
+      </div>
+      <div class="page-header-actions">
+        <button type="button" (click)="openEventForm()"
+          class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-opacity hover:opacity-90 sm:w-auto"
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+          <ng-icon name="lucidePlus" [size]="'14'" />
+          Create Event
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ ADMIN: messages + Stats + Workspace tabs ═══ -->
+  @if (canCreate()) {
+    @if (successMessage) {
+      <div class="rounded-xl border px-4 py-3 text-sm" style="background:var(--badge-green-bg); border-color:transparent; color:var(--badge-green-text);">
+        {{ successMessage }}
+      </div>
+    }
+    @if (errorMessage) {
+      <div class="rounded-xl border px-4 py-3 text-sm" style="background:var(--badge-red-bg); border-color:transparent; color:var(--badge-red-text);">
+        {{ errorMessage }}
+      </div>
+    }
+    <div class="stats-grid stats-grid--4">
+      @for (stat of stats; track stat.label) {
+        <div class="rounded-xl border p-4"
+          style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
+          <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">{{ stat.label }}</p>
+          <p class="text-2xl font-bold" style="color:var(--text-primary); letter-spacing:-0.03em;">{{ stat.value }}</p>
+        </div>
+      }
+    </div>
+    <div class="chip-scroll">
+      @for (tab of workspaceTabs; track tab.id) {
+        @if (
+          (tab.id !== 'review' || isAdmin()) &&
+          (tab.id !== 'speakers' || canCreate()) &&
+          (tab.id !== 'calendar' || canCreate())
+        ) {
+          <button
+            type="button"
+            (click)="workspaceTab = tab.id"
+            class="workspace-tab-btn"
+            [class.active]="workspaceTab === tab.id"
+          >
+            {{ tab.label }}
+          </button>
+        }
+      }
+    </div>
+  }
+
+  <!-- ═══ PUBLIC EVENTS PAGE (regular users) ═══ -->
+  @if (!canCreate()) {
+    <div class="pub-container">
+
+    @if (successMessage) {
+      <div class="rounded-xl border px-4 py-3 text-sm" style="background:var(--badge-green-bg); border-color:transparent; color:var(--badge-green-text);">
+        {{ successMessage }}
+      </div>
+    }
+    @if (errorMessage) {
+      <div class="rounded-xl border px-4 py-3 text-sm" style="background:var(--badge-red-bg); border-color:transparent; color:var(--badge-red-text);">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="pub-events-hero" role="banner">
+      <div class="pub-events-hero__bg" aria-hidden="true"></div>
+      <div class="pub-events-hero__content">
+        <span class="pub-events-hero__eyebrow">FoundersLab · Community Events</span>
+        <h1 class="pub-events-hero__title">Discover &amp; Connect</h1>
+        <p class="pub-events-hero__sub">
+          Workshops, pitch nights, webinars &amp; networking—all in one place.
+          Find your next opportunity and secure your spot.
+        </p>
+        <!-- Integrated search -->
+        <div class="pub-events-hero__search">
+          <ng-icon name="lucideSearch" [size]="'16'" style="color:rgba(255,255,255,0.6); flex-shrink:0;" />
+          <input
+            type="search"
+            placeholder="Search events, topics, speakers…"
+            aria-label="Search events"
+            [value]="searchQuery"
+            (input)="searchQuery = inputValue($event)"
+            class="pub-events-hero__search-input"
+          />
+        </div>
+        <!-- Quick stats row -->
+        <div class="pub-events-hero__meta">
+          <span>
+            <strong style="color:#fff;">{{ filteredEvents.length }}</strong>
+            <span style="color:rgba(255,255,255,0.65);"> events available</span>
+          </span>
+          <span class="pub-events-hero__meta-sep" aria-hidden="true">·</span>
+          <span style="color:rgba(255,255,255,0.65);">Free &amp; paid</span>
+          <span class="pub-events-hero__meta-sep" aria-hidden="true">·</span>
+          <span style="color:rgba(255,255,255,0.65);">Online &amp; in-person</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Type filter chips + view toggle ── -->
+    <div class="pub-events-filters">
+      <div class="pub-events-filters__chips" role="group" aria-label="Filter by type">
+        @for (f of typeFilterOptions; track f) {
+          <button type="button"
+            (click)="selectedTypeFilter = f === 'All' ? '' : f"
+            class="pub-filter-chip"
+            [class.pub-filter-chip--active]="(f === 'All' && !selectedTypeFilter) || selectedTypeFilter === f"
+            [attr.aria-pressed]="(f === 'All' && !selectedTypeFilter) || selectedTypeFilter === f">
+            {{ f }}
+          </button>
+        }
+      </div>
+      <div class="pub-events-filters__view" role="group" aria-label="View mode">
+        <button type="button" (click)="onViewModeChange('grid')"
+          class="pub-view-btn" [class.pub-view-btn--active]="viewMode === 'grid'" aria-label="Grid view">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/>
+            <rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/>
+          </svg>
+          Grid
+        </button>
+        <button type="button" (click)="onViewModeChange('list')"
+          class="pub-view-btn" [class.pub-view-btn--active]="viewMode === 'list'" aria-label="List view">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <rect x="1" y="2" width="14" height="2.5" rx="1.25"/><rect x="1" y="6.75" width="14" height="2.5" rx="1.25"/>
+            <rect x="1" y="11.5" width="14" height="2.5" rx="1.25"/>
+          </svg>
+          List
+        </button>
+        <button type="button" (click)="onViewModeChange('map')"
+          class="pub-view-btn" [class.pub-view-btn--active]="viewMode === 'map'" aria-label="Map view">
+          <ng-icon name="lucideMapPin" [size]="'13'" />
+          Map
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Public events grid / list / map ── -->
+    @if (viewMode === 'map') {
+      <div style="height:520px; border-radius:16px; overflow:hidden; border:1px solid var(--border);">
+        <app-map [markers]="eventMarkersForMap"></app-map>
+      </div>
+    } @else if (loadingEvents) {
+      <div class="pub-loading-grid">
+        @for (n of [1,2,3,4,5,6]; track n) {
+          <div class="pub-skeleton-card" aria-hidden="true">
+            <div class="pub-skeleton-img"></div>
+            <div style="padding:16px; display:flex; flex-direction:column; gap:10px;">
+              <div class="pub-skeleton-line" style="width:40%;"></div>
+              <div class="pub-skeleton-line" style="width:80%;"></div>
+              <div class="pub-skeleton-line" style="width:60%;"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (!filteredEvents.length) {
+      <div class="pub-empty-state">
+        <div class="pub-empty-icon" aria-hidden="true">
+          <ng-icon name="lucideCalendar" [size]="'28'" />
+        </div>
+        <h3 class="pub-empty-title">No events found</h3>
+        <p class="pub-empty-sub">Try a different search term or clear the filter.</p>
+        <button type="button" (click)="searchQuery = ''; selectedTypeFilter = ''"
+          class="pub-empty-clear">Clear filters</button>
+      </div>
+    } @else if (viewMode === 'grid') {
+      <div class="pub-events-grid">
+        @for (event of filteredEvents; track event.id) {
+          <article class="pub-event-card" (click)="selectEvent(event)" tabindex="0" role="button"
+            [attr.aria-label]="'View details for ' + event.title"
+            (keydown.enter)="selectEvent(event)">
+
+            <!-- Cover image -->
+            <div class="pub-event-card__img-wrap">
+              <img [src]="event.coverImageUrl || defaultCover(event)" [alt]="event.title"
+                loading="lazy" class="pub-event-card__img" />
+              <div class="pub-event-card__img-overlay" aria-hidden="true"></div>
+
+              <!-- Type badge -->
+              <span class="pub-event-card__type-badge"
+                [style.background]="typeBg(event.type)"
+                [style.color]="typeColor(event.type)">
+                {{ event.type }}
+              </span>
+
+              <!-- Price badge -->
+              <span class="pub-event-card__price-badge"
+                [style.background]="event.ticketPrice ? 'rgba(0,0,0,0.55)' : 'rgba(5,150,105,0.85)'"
+                style="color:#fff;">
+                {{ event.ticketPrice ? ('€' + event.ticketPrice) : 'Free' }}
+              </span>
+
+              <!-- Date strip on image -->
+              <div class="pub-event-card__date-strip" aria-hidden="true">
+                <span class="pub-event-card__date-month">{{ formatDatePart(event.startDate, 'month') }}</span>
+                <span class="pub-event-card__date-day">{{ formatDatePart(event.startDate, 'day') }}</span>
+              </div>
+            </div>
+
+            <!-- Card body -->
+            <div class="pub-event-card__body">
+              <h3 class="pub-event-card__title">{{ event.title }}</h3>
+              <p class="pub-event-card__desc">{{ event.description }}</p>
+
+              <div class="pub-event-card__meta">
+                <span class="pub-event-card__meta-item">
+                  <ng-icon name="lucideClock3" [size]="'12'" aria-hidden="true" />
+                  {{ formatTime(event.startDate) }}
+                </span>
+                <span class="pub-event-card__meta-item">
+                  @if (event.locationType === 'DISTANCIEL') {
+                    <ng-icon name="lucideVideo" [size]="'12'" aria-hidden="true" /> Online
+                  } @else {
+                    <ng-icon name="lucideMapPin" [size]="'12'" aria-hidden="true" /> {{ event.location || event.locationType }}
+                  }
+                </span>
+              </div>
+
+              <!-- Capacity bar -->
+              <div class="pub-event-card__capacity">
+                <div class="pub-event-card__capacity-bar">
+                  <div class="pub-event-card__capacity-fill"
+                    [style.width.%]="fillRate(event)"
+                    [style.background]="fillRate(event) > 85 ? 'linear-gradient(90deg,#059669,#34D399)' : 'linear-gradient(90deg,#1C4FC3,#6366F1)'">
+                  </div>
+                </div>
+                <span class="pub-event-card__capacity-label">
+                  {{ event.capacityMax && event.capacityMax - event.registeredCount > 0
+                    ? (event.capacityMax - event.registeredCount) + ' spots left'
+                    : 'Full' }}
+                </span>
+              </div>
+
+              <button type="button" class="pub-event-card__cta"
+                [style.background]="(event.capacityMax && event.capacityMax - event.registeredCount <= 0)
+                  ? 'var(--surface-subtle)' : 'linear-gradient(135deg,#1C4FC3,#1D1384)'"
+                [style.color]="(event.capacityMax && event.capacityMax - event.registeredCount <= 0)
+                  ? 'var(--text-muted)' : '#fff'"
+                [disabled]="!!(event.capacityMax && event.capacityMax - event.registeredCount <= 0)"
+                (click)="$event.stopPropagation(); selectEvent(event)">
+                {{ (event.capacityMax && event.capacityMax - event.registeredCount <= 0) ? 'Event Full' : 'View &amp; Register' }}
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <!-- List view for public -->
+      <div class="space-y-3">
+        @for (event of filteredEvents; track event.id) {
+          <div class="pub-event-list-row" (click)="selectEvent(event)" tabindex="0" role="button"
+            [attr.aria-label]="'View details for ' + event.title"
+            (keydown.enter)="selectEvent(event)">
+
+            <div class="pub-event-list-row__date">
+              <span class="pub-event-list-row__date-month">{{ formatDatePart(event.startDate, 'month') }}</span>
+              <span class="pub-event-list-row__date-day">{{ formatDatePart(event.startDate, 'day') }}</span>
+            </div>
+
+            <div class="pub-event-list-row__img-wrap">
+              <img [src]="event.coverImageUrl || defaultCover(event)" [alt]="event.title"
+                loading="lazy" class="pub-event-list-row__img" />
+            </div>
+
+            <div class="pub-event-list-row__body">
+              <div class="pub-event-list-row__badges">
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  [style.background]="typeBg(event.type)" [style.color]="typeColor(event.type)">
+                  {{ event.type }}
+                </span>
+                @if (!event.ticketPrice) {
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    style="background:rgba(5,150,105,0.12); color:#059669;">Free</span>
+                }
+              </div>
+              <h3 class="pub-event-list-row__title">{{ event.title }}</h3>
+              <div class="pub-event-list-row__meta">
+                <span><ng-icon name="lucideClock3" [size]="'11'" aria-hidden="true" /> {{ formatTime(event.startDate) }}</span>
+                <span>
+                  @if (event.locationType === 'DISTANCIEL') {
+                    <ng-icon name="lucideVideo" [size]="'11'" aria-hidden="true" /> Online
+                  } @else {
+                    <ng-icon name="lucideMapPin" [size]="'11'" aria-hidden="true" /> {{ event.location || event.locationType }}
+                  }
+                </span>
+                <span><ng-icon name="lucideUsers" [size]="'11'" aria-hidden="true" /> {{ event.registeredCount }}/{{ event.capacityMax || '∞' }}</span>
+              </div>
+            </div>
+
+            <div class="pub-event-list-row__action">
+              @if (event.ticketPrice) {
+                <span class="pub-event-list-row__price">€{{ event.ticketPrice }}</span>
+              }
+              <button type="button" class="pub-event-list-row__btn"
+                (click)="$event.stopPropagation(); selectEvent(event)">
+                View &amp; Register
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    </div><!-- /pub-container -->
+  }
+
+  <!-- Create / Edit Event Modal -->
+  @if (showEventForm) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Event form">
+      <div class="modal-backdrop" (click)="closeEventForm()"></div>
+      <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(640px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); max-height:92vh; display:flex; flex-direction:column;">
+        <div class="flex items-center justify-between px-6 py-5" style="border-bottom:1px solid var(--border-subtle);">
+          <h2 class="text-base font-bold" style="color:var(--text-primary);">{{ editingEvent ? 'Edit Event' : 'Create New Event' }}</h2>
+          <button type="button" (click)="closeEventForm()" class="flex items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" style="width:32px; height:32px; background:transparent; border:none; cursor:pointer; color:var(--text-muted);" aria-label="Close">
+            <ng-icon name="lucideX" [size]="'16'" />
+          </button>
+        </div>
+        <form [formGroup]="eventForm" (ngSubmit)="submitEventForm()" style="padding:24px; overflow-y:auto; flex:1;">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Event Title</label>
+              <input formControlName="title" type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter event title" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Type</label>
+                <select formControlName="type" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                  <option value="">Select type</option>
+                  @for (type of eventTypes; track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Location Type</label>
+                <select formControlName="locationType" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+                  <option value="">Select format</option>
+                  @for (type of locationTypes; track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Start Date</label>
+                <input formControlName="startDate" type="datetime-local" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">End Date</label>
+                <input formControlName="endDate" type="datetime-local" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Location</label>
+              <input formControlName="location" type="text" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Enter location" />
+            </div>
+
+            @if (isPresentiel) {
+              <!-- Address autocomplete & preview map for PRESENTIEL events -->
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">
+                  Address <span style="color:#0a66c2; font-weight:400;">(geocoded via OpenStreetMap)</span>
+                </label>
+                <div style="position:relative;">
+                  <input type="text"
+                    [value]="eventForm.get('address')?.value || ''"
+                    (input)="onAddressInput(inputValue($event))"
+                    (blur)="showGeocodeSuggestions = false"
+                    class="w-full text-sm rounded-lg border focus:outline-none"
+                    style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);"
+                    placeholder="Type an address in Tunisia..." autocomplete="off" />
+
+                  @if (showGeocodeSuggestions && geocodeSuggestions.length) {
+                    <div style="position:absolute; top:100%; left:0; right:0; z-index:100; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); margin-top:2px; max-height:200px; overflow-y:auto;">
+                      @for (s of geocodeSuggestions; track s.display_name) {
+                        <button type="button"
+                          (mousedown)="selectGeocodeSuggestion(s)"
+                          class="w-full text-left text-xs px-3 py-2 cursor-pointer"
+                          style="background:transparent; border:none; color:var(--text-body); font-family:var(--font-sans); border-bottom:1px solid var(--border-subtle);">
+                          {{ s.display_name }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (formPreviewMarkers.length) {
+                <div>
+                  <p class="text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Location preview — drag pin to adjust</p>
+                  <div style="height:220px; border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                    <app-map [markers]="formPreviewMarkers" [draggable]="true"
+                      [onDrag]="updateFormCoords.bind(this)"></app-map>
+                  </div>
+                  <p class="text-xs mt-1" style="color:var(--text-muted);">
+                    {{ eventForm.get('latitude')?.value | number:'1.5-5' }},
+                    {{ eventForm.get('longitude')?.value | number:'1.5-5' }}
+                  </p>
+                </div>
+              }
+            }
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Capacity</label>
+                <input formControlName="capacityMax" type="number" min="1" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Max capacity" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Ticket Price</label>
+                <input formControlName="ticketPrice" type="number" min="0" step="0.01" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="0 for free" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Cover Image</label>
+              <div class="flex gap-2">
+                <input formControlName="coverImageUrl" type="text" class="flex-1 text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Image URL" />
+                <label class="flex items-center gap-1.5 text-xs font-semibold rounded-lg cursor-pointer" style="background:var(--surface-subtle); border:1px solid var(--border); color:var(--text-body); padding:8px 12px; font-family:var(--font-sans); flex-shrink:0;">
+                  <ng-icon name="lucideUpload" [size]="'14'" />
+                  Upload
+                  <input type="file" accept="image/*" hidden (change)="uploadEventImage($event)" />
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Description</label>
+              <textarea formControlName="description" rows="4" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); min-height:80px; resize:vertical;" placeholder="Describe the event"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Target Sectors</label>
+              <input type="text" [value]="sectorInput" (input)="sectorInput = inputValue($event)" (keydown.enter)="addSector($event)" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Press enter to add" />
+              @if (targetSectors.length) {
+                <div class="flex items-center flex-wrap gap-1.5 mt-2">
+                  @for (sector of targetSectors; track sector) {
+                    <button type="button" (click)="removeSector(sector)" class="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style="background:var(--badge-purple-bg); color:var(--badge-purple-text); border:none;">{{ sector }} ×</button>
+                  }
+                </div>
+              }
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Target Stages</label>
+              <input type="text" [value]="stageInput" (input)="stageInput = inputValue($event)" (keydown.enter)="addStage($event)" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" placeholder="Press enter to add" />
+              @if (targetStages.length) {
+                <div class="flex items-center flex-wrap gap-1.5 mt-2">
+                  @for (stage of targetStages; track stage) {
+                    <button type="button" (click)="removeStage(stage)" class="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style="background:var(--badge-blue-bg); color:var(--badge-blue-text); border:none;">{{ stage }} ×</button>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (!editingEvent) {
+              <!-- Speaker (LinkedIn) -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-semibold" style="color:var(--text-secondary);">Speakers (LinkedIn)</label>
+                  <button type="button" (click)="showFormSpeakerSearch = !showFormSpeakerSearch; formSpeakerCandidates = []; formSpeakerSearchError = ''"
+                    class="text-xs font-semibold rounded-lg cursor-pointer"
+                    style="background:transparent; border:1px solid #0a66c2; color:#0a66c2; padding:3px 10px; font-family:var(--font-sans);">
+                    {{ showFormSpeakerSearch ? 'Hide' : 'Search LinkedIn' }}
+                  </button>
+                </div>
+
+                @if (formStagedSpeakers.length) {
+                  <div class="flex flex-col gap-1.5 mb-2">
+                    @for (s of formStagedSpeakers; track s.linkedinUrl || s.fullName) {
+                      <div class="flex items-center gap-2 rounded-lg px-2.5 py-1.5" style="background:rgba(28,79,195,0.06); border:1px solid rgba(28,79,195,0.15);">
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs font-semibold truncate" style="color:var(--text-primary);">{{ s.fullName }}</p>
+                          @if (s.title) { <p class="text-xs" style="color:var(--text-muted);">{{ s.title }}</p> }
+                        </div>
+                        @if (s.linkedinUrl) {
+                          <a [href]="s.linkedinUrl" target="_blank" class="text-xs font-semibold flex-shrink-0" style="color:#0a66c2;" (click)="$event.stopPropagation()">LinkedIn</a>
+                        }
+                        <button type="button" (click)="removeFormSpeaker(s)" style="background:transparent; border:none; cursor:pointer; color:var(--text-muted); padding:2px; display:flex; align-items:center;">
+                          <ng-icon name="lucideX" [size]="'12'" />
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (showFormSpeakerSearch) {
+                  <div class="flex gap-2 mb-2">
+                    <input type="text" [(ngModel)]="formSpeakerSearchQuery" [ngModelOptions]="{standalone: true}"
+                      placeholder="Keywords: AI, DevOps..." (keydown.enter)="searchLinkedInForForm()"
+                      class="flex-1 text-sm rounded-lg border focus:outline-none"
+                      style="padding:7px 10px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                    <button type="button" (click)="searchLinkedInForForm()"
+                      [disabled]="isSearchingFormSpeakers || !formSpeakerSearchQuery.trim()"
+                      class="text-xs font-semibold rounded-lg cursor-pointer flex-shrink-0"
+                      style="background:#0a66c2; color:#fff; border:none; padding:7px 14px; font-family:var(--font-sans);">
+                      {{ isSearchingFormSpeakers ? '...' : 'Search' }}
+                    </button>
+                  </div>
+                  @if (formSpeakerSearchError) {
+                    <p class="text-xs mb-2" style="color:#b91c1c;">{{ formSpeakerSearchError }}</p>
+                  }
+                  @if (formSpeakerCandidates.length) {
+                    <div class="flex flex-col gap-1.5" style="max-height:200px; overflow-y:auto;">
+                      @for (c of formSpeakerCandidates; track c.linkedinUrl || c.fullName) {
+                        <div class="flex items-center gap-2 rounded-lg px-2.5 py-2"
+                          [style.background]="isFormSpeakerStaged(c) ? 'rgba(21,128,61,0.06)' : 'var(--surface-subtle)'"
+                          style="border:1px solid var(--border);">
+                          <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold truncate" style="color:var(--text-primary);">{{ c.fullName }}</p>
+                            @if (c.title) { <p class="text-xs" style="color:var(--text-muted);">{{ c.title }}</p> }
+                            @if (c.company) { <p class="text-xs" style="color:var(--text-muted);">{{ c.company }}</p> }
+                          </div>
+                          <button type="button" (click)="stageFormSpeaker(c)" [disabled]="isFormSpeakerStaged(c)"
+                            class="text-xs font-semibold rounded-lg cursor-pointer flex-shrink-0"
+                            [style.color]="isFormSpeakerStaged(c) ? '#15803d' : 'var(--text-body)'"
+                            style="background:var(--surface); border:1px solid var(--border); padding:4px 10px; font-family:var(--font-sans);">
+                            {{ isFormSpeakerStaged(c) ? 'Added ✓' : '+ Add' }}
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+
+              <!-- Generate programme toggle -->
+              <div class="flex items-center justify-between rounded-lg px-3 py-2.5" style="background:var(--surface-subtle); border:1px solid var(--border);">
+                <div>
+                  <p class="text-xs font-semibold" style="color:var(--text-primary);">Generate programme with AI</p>
+                  <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Automatically generate a programme after creation.</p>
+                </div>
+                <button type="button" (click)="formShouldGenerateProgram = !formShouldGenerateProgram"
+                  class="relative rounded-full flex-shrink-0 cursor-pointer"
+                  style="width:36px; height:20px; border:none; padding:0; transition:background 0.2s;"
+                  [style.background]="formShouldGenerateProgram ? '#1C4FC3' : 'var(--border)'">
+                  <span class="absolute rounded-full"
+                    style="width:14px; height:14px; top:3px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.2); transition:left 0.2s;"
+                    [style.left]="formShouldGenerateProgram ? '19px' : '3px'"></span>
+                </button>
+              </div>
+            }
+
+            @if (predictionError) {
+              <div class="mt-4 px-3 py-2 rounded-xl text-xs" style="background:rgba(185,28,28,0.08); border:1px solid rgba(185,28,28,0.2); color:#b91c1c;">
+                {{ predictionError }}
+              </div>
+            }
+            @if (fullAnalysis) {
+              <div class="mt-4 rounded-2xl overflow-hidden text-xs" style="border:1px solid rgba(28,79,195,0.25); background:rgba(28,79,195,0.04);">
+                <!-- Header -->
+                <div class="px-4 py-2.5 flex items-center gap-2" style="background:rgba(28,79,195,0.1); border-bottom:1px solid rgba(28,79,195,0.15);">
+                  <ng-icon name="lucideSparkles" [size]="'13'" style="color:#1C4FC3;" />
+                  <span class="font-semibold" style="color:#1C4FC3;">AI Event Analysis</span>
+                  <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold"
+                    [style.background]="fullAnalysis.label === 'High Potential' ? 'rgba(21,128,61,0.12)' : fullAnalysis.label === 'Moderate' ? 'rgba(180,83,9,0.12)' : 'rgba(185,28,28,0.12)'"
+                    [style.color]="fullAnalysis.label === 'High Potential' ? '#15803d' : fullAnalysis.label === 'Moderate' ? '#b45309' : '#b91c1c'">
+                    {{ fullAnalysis.label }} · {{ fullAnalysis.successScore }}/100
+                  </span>
+                </div>
+                <div class="grid grid-cols-2 gap-px" style="background:rgba(28,79,195,0.1);">
+                  <!-- Registration estimate -->
+                  <div class="px-4 py-3" style="background:var(--surface);">
+                    <p class="font-semibold mb-1" style="color:var(--text-primary);">Registration estimate</p>
+                    <p class="font-bold" style="color:#1C4FC3; font-size:15px;">
+                      {{ fullAnalysis.registrationEstimate.min }}–{{ fullAnalysis.registrationEstimate.max }}
+                      <span class="font-normal" style="color:var(--text-secondary); font-size:11px;">inscribed</span>
+                    </p>
+                    <p style="color:var(--text-secondary);">
+                      Point: <strong style="color:var(--text-primary);">{{ fullAnalysis.registrationEstimate.pointEstimate }}</strong>
+                      &nbsp;·&nbsp;Confidence: <strong style="color:var(--text-primary);">{{ fullAnalysis.registrationEstimate.confidence }}%</strong>
+                    </p>
+                  </div>
+                  <!-- Optimal slot -->
+                  <div class="px-4 py-3" style="background:var(--surface);">
+                    <p class="font-semibold mb-1" style="color:var(--text-primary);">Optimal time slot</p>
+                    <p class="font-bold" style="color:#1C4FC3; font-size:15px;">{{ fullAnalysis.optimalSlot.dayName }}</p>
+                    <p style="color:var(--text-secondary);">
+                      {{ fullAnalysis.optimalSlot.timeWindow }}
+                      &nbsp;·&nbsp;<strong style="color:#15803d;">+{{ fullAnalysis.optimalSlot.boostVsAverage }}%</strong>
+                    </p>
+                  </div>
+                  <!-- Suggested capacity -->
+                  <div class="px-4 py-3" style="background:var(--surface);">
+                    <p class="font-semibold mb-1" style="color:var(--text-primary);">Suggested capacity</p>
+                    <p class="font-bold" style="color:#1C4FC3; font-size:15px;">{{ fullAnalysis.suggestedCapacity }} seats</p>
+                    <p style="color:var(--text-secondary);">Upper bound + 15% buffer</p>
+                  </div>
+                  <!-- Conflicts -->
+                  <div class="px-4 py-3" style="background:var(--surface);">
+                    <p class="font-semibold mb-1" style="color:var(--text-primary);">Date conflicts</p>
+                    @if (!fullAnalysis.conflicts.length) {
+                      <p style="color:#15803d;">✓ No conflicts this week</p>
+                    } @else {
+                      @for (c of fullAnalysis.conflicts; track c.eventTitle) {
+                        <div class="mb-1 flex items-start gap-1">
+                          <span class="flex-shrink-0 rounded px-1 font-semibold"
+                            [style.background]="c.severity === 'HIGH' ? 'rgba(185,28,28,0.12)' : 'rgba(180,83,9,0.12)'"
+                            [style.color]="c.severity === 'HIGH' ? '#b91c1c' : '#b45309'">{{ c.severity }}</span>
+                          <span style="color:var(--text-body);">{{ c.eventTitle }}
+                            <span style="color:var(--text-secondary);">({{ c.eventDate }})</span>
+                          </span>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </form>
+        <div class="flex items-center justify-end gap-3 px-6 py-4" style="border-top:1px solid var(--border-subtle);">
+          <button type="button" (click)="generateDescription()" [disabled]="generatingDescription" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 16px;">
+            <ng-icon name="lucideSparkles" [size]="'14'" />
+            {{ generatingDescription ? 'Generating...' : 'AI Description' }}
+          </button>
+          <button type="button" (click)="predictEvent()" [disabled]="predictingEvent" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 16px;">
+            <ng-icon name="lucideSparkles" [size]="'14'" />
+            {{ predictingEvent ? 'Predicting...' : 'AI Predict' }}
+          </button>
+          <button type="button" (click)="closeEventForm()" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px;">Cancel</button>
+          <button type="button" (click)="submitEventForm()" [disabled]="eventForm.invalid || savingEvent" class="text-sm font-semibold rounded-xl cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:8px 20px;">
+            {{ savingEvent ? 'Saving...' : (editingEvent ? 'Update Event' : 'Create Event') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (workspaceTab === 'directory' && canCreate()) {
+    <!-- Filters -->
+    <div class="filter-toolbar">
+      <div class="relative filter-toolbar__grow">
+        <ng-icon name="lucideSearch" [size]="'13'"
+          style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);" />
+        <input type="search" placeholder="Search events..."
+          aria-label="Search events"
+          [value]="searchQuery"
+          (input)="searchQuery = inputValue($event)"
+          class="input-full text-xs rounded-lg border focus:outline-none"
+          style="padding:6px 12px 6px 28px; background:var(--surface); border-color:var(--border); font-family:var(--font-sans);" />
+      </div>
+      <div class="chip-scroll">
+        @for (f of typeFilterOptions; track f) {
+          <button type="button" (click)="selectedTypeFilter = f === 'All' ? '' : f"
+            class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
+            [style.background]="(f === 'All' && !selectedTypeFilter) || selectedTypeFilter === f ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+            [style.color]="(f === 'All' && !selectedTypeFilter) || selectedTypeFilter === f ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+            [style.border-color]="(f === 'All' && !selectedTypeFilter) || selectedTypeFilter === f ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'"
+            style="padding:5px 12px;">{{ f }}</button>
+        }
+      </div>
+      @if (canCreate()) {
+        <select class="select-inline text-xs" [value]="selectedStatusFilter" (change)="selectedStatusFilter = inputValue($event)">
+          <option value="">All statuses</option>
+          @for (status of eventStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      }
+      <div class="chip-scroll sm:ml-auto">
+        @for (v of viewModes; track v) {
+          <button type="button" (click)="onViewModeChange(v)"
+            class="text-xs font-medium rounded-lg cursor-pointer border transition-colors"
+            [style.background]="viewMode === v ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+            [style.color]="viewMode === v ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+            [style.border-color]="viewMode === v ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'"
+            style="padding:5px 12px;">
+            {{ v === 'grid' ? '⊞ Grid' : (v === 'list' ? '☰ List' : '🗺 Map') }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (viewMode === 'map') {
+      <!-- ── MAP VIEW ── -->
+      <div style="height:520px; border-radius:16px; overflow:hidden; border:1px solid var(--border);">
+        <app-map [markers]="eventMarkersForMap"></app-map>
+      </div>
+    } @else if (loadingEvents) {
+      <p class="text-sm" style="color:var(--text-secondary);">Loading events...</p>
+    } @else if (!filteredEvents.length) {
+      <div class="empty-card">
+        <p class="text-sm font-semibold" style="color:var(--text-primary);">No events found</p>
+        <p class="text-xs mt-1" style="color:var(--text-secondary);">Adjust filters or create a new event.</p>
+      </div>
+    } @else if (viewMode === 'grid') {
+      <!-- Grid view -->
+      <div class="card-grid-auto">
+        @for (event of filteredEvents; track event.id) {
+          <article class="rounded-2xl border overflow-hidden transition-all hover:shadow-lg cursor-pointer group"
+            style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);"
+            [style.box-shadow]="selectedEvent?.id === event.id ? '0 0 0 2px rgba(28,79,195,0.25)' : ''">
+
+            <!-- Cover image -->
+            <div class="relative overflow-hidden" style="height:160px;">
+              <img
+                [src]="event.coverImageUrl || defaultCover(event)"
+                [alt]="event.title"
+                loading="lazy"
+                style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s ease; display:block;"
+                class="group-hover:scale-105"
+              />
+              <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(11,15,42,0.7) 0%, transparent 60%);"></div>
+
+              <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm"
+                  [style.background]="typeBg(event.type)"
+                  [style.color]="typeColor(event.type)">
+                  {{ event.type }}
+                </span>
+              </div>
+              <span class="absolute top-3 right-3 text-xs font-medium px-2 py-0.5 rounded-full backdrop-blur-sm"
+                [style.background]="statusTone(event.status).bg"
+                [style.color]="statusTone(event.status).fg">
+                {{ event.status }}
+              </span>
+
+              <div class="absolute bottom-3 left-3">
+                <p class="text-sm font-bold" style="color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.5);">
+                  {{ formatDateTime(event.startDate) }}
+                </p>
+              </div>
+
+              <div class="absolute bottom-3 right-3 flex max-w-[calc(100%-24px)] items-center gap-1 rounded-full px-2 py-1"
+                style="background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+                @if (event.locationType === 'DISTANCIEL') {
+                  <ng-icon name="lucideVideo" [size]="'11'" style="color:#fff;" />
+                  <span class="text-xs" style="color:#fff;">Online</span>
+                } @else {
+                  <ng-icon name="lucideMapPin" [size]="'11'" style="color:#fff;" />
+                  <span class="truncate text-xs" style="color:#fff;">{{ event.location || event.locationType }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Card body -->
+            <div style="padding:16px;">
+              <h3 class="text-sm font-bold mb-1 leading-snug" style="color:var(--text-primary);">{{ event.title }}</h3>
+              <p class="text-xs leading-relaxed mb-3 line-clamp-2" style="color:var(--text-secondary);">{{ event.description }}</p>
+
+              @if (event.organizerName) {
+                <p class="text-xs mb-3" style="color:var(--text-muted);">
+                  By <span class="font-semibold" style="color:var(--text-secondary);">{{ event.organizerName }}</span>
+                </p>
+              }
+
+              <!-- Capacity bar -->
+              <div class="mb-3">
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="flex items-center gap-1 text-xs" style="color:var(--text-secondary);">
+                    <ng-icon name="lucideUsers" [size]="'12'" />
+                    {{ event.registeredCount }} / {{ event.capacityMax || 0 }} registered
+                  </div>
+                  <span class="text-xs font-semibold"
+                    [style.color]="fillRate(event) > 85 ? '#059669' : '#1C4FC3'">
+                    {{ fillRate(event) }}%
+                  </span>
+                </div>
+                <div style="height:4px; background:var(--surface-subtle); border-radius:99px; overflow:hidden;">
+                  <div style="height:100%; border-radius:99px; transition:width 0.4s;"
+                    [style.width.%]="fillRate(event)"
+                    [style.background]="fillRate(event) > 85 ? 'linear-gradient(90deg,#059669,#34D399)' : 'linear-gradient(90deg,#1C4FC3,#1D1384)'">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tags -->
+              @if (event.targetSector.length || event.targetStage.length) {
+                <div class="flex items-center flex-wrap gap-1.5 mb-3">
+                  @for (tag of event.targetSector.concat(event.targetStage); track tag) {
+                    <span class="text-xs px-1.5 py-0.5 rounded" style="background:var(--surface-subtle); color:var(--text-secondary); font-weight:500;">{{ tag }}</span>
+                  }
+                </div>
+              }
+
+              <!-- Actions -->
+              <div class="flex items-center gap-2">
+                <button type="button" (click)="selectEvent(event)"
+                  class="flex-1 text-xs font-semibold rounded-xl border-none cursor-pointer transition-opacity hover:opacity-90"
+                  style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px;">
+                  @if (canCreate()) { Open workspace } @else { View &amp; Register }
+                </button>
+                @if (canCreate() && canEditEvent(event)) {
+                  <button type="button" (click)="openEventForm(event)"
+                    class="flex items-center justify-center rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                    style="width:34px; height:34px; background:var(--surface-subtle); border:none; cursor:pointer; color:var(--text-muted); flex-shrink:0;"
+                    [attr.aria-label]="'Edit ' + event.title">
+                    <ng-icon name="lucideEdit" [size]="'14'" />
+                  </button>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else if (viewMode === 'list') {
+      <!-- List view -->
+      <div class="space-y-3">
+        @for (event of filteredEvents; track event.id) {
+          <div class="rounded-xl border overflow-hidden transition-all hover:shadow-md cursor-pointer flex flex-col lg:flex-row"
+            style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
+
+            <div class="relative overflow-hidden flex-shrink-0 h-[180px] w-full lg:h-auto lg:w-[120px]">
+              <img
+                [src]="event.coverImageUrl || defaultCover(event)"
+                [alt]="event.title"
+                loading="lazy"
+                style="width:100%; height:100%; object-fit:cover; display:block;"
+              />
+              <div class="absolute inset-0" style="background:linear-gradient(to right, transparent 60%, rgba(11,15,42,0.1));"></div>
+            </div>
+
+            <div class="flex flex-row items-center justify-between gap-3 px-4 py-3 flex-shrink-0 lg:w-[72px] lg:flex-col lg:justify-center"
+              style="background:linear-gradient(135deg,#1F2937,#1D1384);">
+              <span class="text-xs font-semibold" style="color:#93C5FD;">{{ formatDatePart(event.startDate, 'month') }}</span>
+              <span class="text-xl font-bold leading-none" style="color:#fff;">{{ formatDatePart(event.startDate, 'day') }}</span>
+              <span class="text-xs" style="color:#93C5FD;">{{ formatDatePart(event.startDate, 'year') }}</span>
+            </div>
+
+            <div class="flex flex-col justify-center flex-1 px-5 py-4">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded"
+                      [style.background]="typeBg(event.type)" [style.color]="typeColor(event.type)">{{ event.type }}</span>
+                    <span class="text-xs font-medium px-1.5 py-0.5 rounded-full"
+                      [style.background]="statusTone(event.status).bg" [style.color]="statusTone(event.status).fg">{{ event.status }}</span>
+                  </div>
+                  <h3 class="text-sm font-bold" style="color:var(--text-primary);">{{ event.title }}</h3>
+                  <div class="mt-1 flex flex-wrap items-center gap-3 text-xs" style="color:var(--text-muted);">
+                    <span class="flex items-center gap-1">
+                      <ng-icon name="lucideClock3" [size]="'11'" /> {{ formatTime(event.startDate) }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      @if (event.locationType === 'DISTANCIEL') {
+                        <ng-icon name="lucideVideo" [size]="'11'" /> Online
+                      } @else {
+                        <ng-icon name="lucideMapPin" [size]="'11'" /> {{ event.location || event.locationType }}
+                      }
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <ng-icon name="lucideUsers" [size]="'11'" /> {{ event.registeredCount }}/{{ event.capacityMax || 0 }}
+                    </span>
+                  </div>
+                </div>
+                <button type="button" (click)="selectEvent(event)"
+                  class="w-full text-xs font-semibold rounded-lg border-none cursor-pointer flex-shrink-0 lg:w-auto"
+                  style="background:var(--badge-purple-bg); color:#1C4FC3; padding:7px 14px;">
+                  @if (canCreate()) { Open } @else { View &amp; Register }
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (viewMode === 'map') {
+      <!-- Map view -->
+      <div class="rounded-2xl border overflow-hidden" style="background:var(--surface); border-color:var(--border); height:600px;">
+        <app-map [markers]="eventMarkersForMap"></app-map>
+      </div>
+    }
+  }
+
+  <!-- ── CALENDAR TAB (admin/mentor/partner only) ── -->
+  @if (workspaceTab === 'calendar' && canCreate()) {
+    <section class="rounded-2xl border overflow-hidden" style="background:var(--surface); border-color:var(--border);">
+      <!-- Calendar navigation header -->
+      <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border);">
+        <div>
+          <h3 class="text-base font-semibold" style="color:var(--text-primary);">{{ calendarMonthLabel }}</h3>
+          <p class="text-xs mt-0.5" style="color:var(--text-secondary);">
+            {{ calendarEventsInMonth.length }} event{{ calendarEventsInMonth.length !== 1 ? 's' : '' }} scheduled
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" class="btn-secondary-inline" (click)="prevCalendarMonth()" aria-label="Previous month">&#8249;</button>
+          <button type="button" class="btn-secondary-inline" (click)="goToCalendarToday()">Today</button>
+          <button type="button" class="btn-secondary-inline" (click)="nextCalendarMonth()" aria-label="Next month">&#8250;</button>
+        </div>
+      </div>
+
+      <!-- Day-of-week headers -->
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--border);">
+        @for (d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; track d) {
+          <div style="padding:8px 4px; text-align:center; background:var(--surface-subtle);">
+            <span class="text-xs font-semibold" style="color:var(--text-secondary);">{{ d }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Calendar day cells -->
+      <div style="display:grid; grid-template-columns:repeat(7,1fr);">
+        @for (cell of calendarDays; track $index) {
+          <div style="min-height:88px; padding:6px; position:relative; border-right:1px solid var(--border); border-bottom:1px solid var(--border);"
+            [style.background]="cell.isToday ? 'rgba(28,79,195,0.04)' : cell.date ? 'var(--surface)' : 'var(--surface-subtle)'">
+            @if (cell.date) {
+              <span class="text-xs font-bold"
+                style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; margin-bottom:4px;"
+                [style.background]="cell.isToday ? '#1C4FC3' : 'transparent'"
+                [style.color]="cell.isToday ? '#fff' : 'var(--text-primary)'">
+                {{ cell.date.getDate() }}
+              </span>
+              @for (ev of cell.events.slice(0, 3); track ev.id) {
+                <button type="button"
+                  (click)="selectEvent(ev)"
+                  title="{{ ev.title }}"
+                  style="display:block; width:100%; text-align:left; border:none; padding:2px 5px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;"
+                  [style.background]="typeBg(ev.type)"
+                  [style.color]="typeColor(ev.type)">
+                  {{ ev.title }}
+                </button>
+              }
+              @if (cell.events.length > 3) {
+                <span style="font-size:10px; color:var(--text-muted); padding-left:4px;">+{{ cell.events.length - 3 }} more</span>
+              }
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ── SPEAKERS TAB (admin/mentor/partner only) ── -->
+  @if (workspaceTab === 'speakers' && canCreate()) {
+    <section class="rounded-2xl border p-5" style="background:var(--surface); border-color:var(--border);">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h3 class="text-base font-semibold" style="color:var(--text-primary);">Speaker Management</h3>
+          <p class="text-xs mt-1" style="color:var(--text-secondary);">
+            Create speakers, upload photos, link them to the selected event, and import from LinkedIn.
+          </p>
+        </div>
+        <div class="ticket-actions-row">
+          @if (selectedEvent) {
+            <span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--badge-purple-bg); color:var(--badge-purple-text);">
+              Event context: {{ selectedEvent.title }}
+            </span>
+          }
+          <button type="button" class="btn-primary-inline" (click)="openSpeakerForm()">
+            <ng-icon name="lucideUserRoundPlus" [size]="'14'" />
+            Add speaker
+          </button>
+        </div>
+      </div>
+
+      @if (showSpeakerForm) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
+          <div class="modal-backdrop" (click)="closeSpeakerForm()"></div>
+          <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(580px, calc(100vw - 24px)); max-height:90vh; box-shadow:0 24px 64px rgba(0,0,0,0.28); display:flex; flex-direction:column;">
+            <div class="flex-shrink-0" style="padding:20px 24px 16px; background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+              <button type="button" (click)="closeSpeakerForm()"
+                class="absolute top-4 right-4 flex items-center justify-center rounded-lg"
+                style="width:32px; height:32px; background:rgba(255,255,255,0.15); border:none; cursor:pointer; color:#fff;" aria-label="Close">
+                <ng-icon name="lucideX" [size]="'16'" />
+              </button>
+              <h2 class="text-base font-bold" style="color:#fff;">{{ editingSpeaker ? 'Edit Speaker' : 'Add Speaker' }}</h2>
+              <p class="text-xs mt-1" style="color:rgba(255,255,255,0.7);">Fill out the speaker's information.</p>
+            </div>
+            <div style="overflow-y:auto; flex:1; padding:20px 24px 24px;">
+              <form [formGroup]="speakerForm" (ngSubmit)="submitSpeakerForm()">
+                <div class="profile-grid">
+                  <label class="profile-field">
+                    <span>Full name</span>
+                    <input formControlName="fullName" type="text" />
+                  </label>
+                  <label class="profile-field">
+                    <span>Title</span>
+                    <input formControlName="title" type="text" />
+                  </label>
+                  <label class="profile-field">
+                    <span>Company</span>
+                    <input formControlName="company" type="text" />
+                  </label>
+                  <label class="profile-field">
+                    <span>LinkedIn URL</span>
+                    <input formControlName="linkedinUrl" type="url" />
+                  </label>
+                  <label class="profile-field profile-field--full">
+                    <span>Bio</span>
+                    <textarea formControlName="bio" rows="3"></textarea>
+                  </label>
+                  <label class="profile-field profile-field--full">
+                    <span>Photo URL</span>
+                    <div class="upload-inline">
+                      <input formControlName="photoUrl" type="text" />
+                      @if (editingSpeaker) {
+                        <label class="btn-secondary-inline upload-button">
+                          <ng-icon name="lucideUpload" [size]="'14'" />
+                          Upload
+                          <input type="file" accept="image/*" hidden (change)="uploadSpeakerPhoto($event)" />
+                        </label>
+                      }
+                    </div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-end gap-2 mt-5">
+                  <button type="button" class="btn-secondary-inline" (click)="closeSpeakerForm()">Cancel</button>
+                  <button type="submit" class="text-xs font-semibold rounded-lg cursor-pointer"
+                    style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:7px 16px;"
+                    [disabled]="speakerForm.invalid || savingSpeaker">
+                    {{ savingSpeaker ? 'Saving...' : (editingSpeaker ? 'Update speaker' : 'Create speaker') }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="speaker-list-inline mt-5">
+        @for (speaker of speakers; track speaker.id) {
+          <article class="speaker-card-inline">
+            <div class="speaker-card-inline__head">
+              <div class="speaker-avatar-inline" [style.background-image]="speaker.photoUrl ? 'url(' + speaker.photoUrl + ')' : ''">
+                @if (!speaker.photoUrl) {
+                  <span>{{ speaker.fullName.charAt(0) }}</span>
+                }
+              </div>
+              <div>
+                <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ speaker.fullName }}</p>
+                <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ speaker.title || 'Speaker' }} @ {{ speaker.company || 'Independent' }}</p>
+              </div>
+            </div>
+            <p class="mt-3 text-xs line-clamp-3" style="color:var(--text-secondary);">{{ speaker.bio || 'No bio available.' }}</p>
+            <div class="ticket-actions-row mt-4">
+              @if (selectedEvent) {
+                <button type="button" class="btn-secondary-inline" (click)="toggleSpeakerLink(speaker)">
+                  {{ isSpeakerLinked(speaker) ? 'Unlink from event' : 'Link to event' }}
+                </button>
+              }
+              @if (speaker.linkedinUrl) {
+                <a class="btn-secondary-inline anchor-like" [href]="speaker.linkedinUrl" target="_blank" rel="noreferrer">
+                  <ng-icon name="lucideExternalLink" [size]="'14'" />
+                  LinkedIn
+                </a>
+              }
+              <button type="button" class="btn-secondary-inline" (click)="openSpeakerForm(speaker)">Edit</button>
+              <button type="button" class="btn-danger-inline" (click)="deleteSpeaker(speaker)">
+                <ng-icon name="lucideTrash2" [size]="'14'" />
+                Delete
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ── REVIEW TAB (admin only) ── -->
+  @if (workspaceTab === 'review' && isAdmin()) {
+    <section class="rounded-2xl border p-5" style="background:var(--surface); border-color:var(--border);">
+      <div>
+        <h3 class="text-base font-semibold" style="color:var(--text-primary);">Pending Review</h3>
+        <p class="text-xs mt-1" style="color:var(--text-secondary);">The old pending-events admin page now sits inside the event workspace.</p>
+      </div>
+
+      @if (loadingPending) {
+        <p class="mt-5 text-sm" style="color:var(--text-secondary);">Loading pending events...</p>
+      } @else if (!pendingEvents.length) {
+        <div class="empty-card mt-5">
+          <p class="text-sm font-semibold" style="color:var(--text-primary);">Nothing waiting for review</p>
+        </div>
+      } @else {
+        <div class="review-list-inline mt-5">
+          @for (event of pendingEvents; track event.id) {
+            <article class="review-card-inline">
+              <div>
+                <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ event.title }}</p>
+                <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ event.description }}</p>
+              </div>
+              <div class="ticket-actions-row mt-4">
+                <button type="button" class="btn-secondary-inline" (click)="selectEvent(event); workspaceTab = 'directory'">Inspect</button>
+                <button type="button" class="btn-primary-inline" (click)="approveEvent(event)">Approve</button>
+                <button type="button" class="btn-danger-inline" (click)="rejectEvent(event)">Reject</button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ── EVENT DETAIL MODAL ── -->
+  @if (selectedEvent) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" [attr.aria-label]="selectedEvent.title">
+      <div class="modal-backdrop" (click)="selectedEvent = null"></div>
+      <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(860px, calc(100vw - 24px)); max-height:90vh; box-shadow:0 24px 64px rgba(0,0,0,0.28); display:flex; flex-direction:column;">
+
+        <!-- Modal header with gradient banner -->
+        <div class="relative flex-shrink-0" style="padding:24px 24px 20px; background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+          <button type="button" (click)="selectedEvent = null"
+            class="absolute top-4 right-4 flex items-center justify-center rounded-lg transition-colors"
+            style="width:32px; height:32px; background:rgba(255,255,255,0.15); border:none; cursor:pointer; color:#fff;" aria-label="Close">
+            <ng-icon name="lucideX" [size]="'16'" />
+          </button>
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.2); color:#fff;">{{ selectedEvent.type }}</span>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.15); color:#fff;">{{ selectedEvent.status }}</span>
+          </div>
+          <h2 class="text-lg font-bold" style="color:#fff; letter-spacing:-0.02em;">{{ selectedEvent.title }}</h2>
+          <p class="text-xs mt-1" style="color:rgba(255,255,255,0.7);">{{ formatDateTime(selectedEvent.startDate) }}{{ selectedEvent.organizerName ? ' · by ' + selectedEvent.organizerName : '' }}</p>
+          <div class="flex items-center gap-2 mt-3">
+            @if (canCreate() && canEditEvent(selectedEvent)) {
+              <button type="button" (click)="openEventForm(selectedEvent)"
+                class="text-xs font-semibold rounded-lg cursor-pointer"
+                style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:6px 14px; font-family:var(--font-sans);">Edit</button>
+            }
+          </div>
+        </div>
+
+        <!-- Scrollable body -->
+        <div style="overflow-y:auto; flex:1; padding:20px 24px 24px;">
+
+          <div class="chip-scroll">
+            @for (tab of detailTabs; track tab.id) {
+              @if ((tab.id !== 'registrations' || canCreate()) &&
+                   (tab.id !== 'feedback' || selectedEvent.status === 'TERMINE' || selectedEvent.status === 'PUBLIE')) {
+                <button type="button" class="workspace-tab-btn" [class.active]="detailTab === tab.id" (click)="detailTab = tab.id">
+                  @if (tab.id === 'feedback' && feedbackStats && feedbackStats.totalCount > 0) {
+                    {{ tab.label }} ({{ feedbackStats.totalCount }})
+                  } @else {
+                    {{ tab.label }}
+                  }
+                </button>
+              }
+            }
+          </div>
+
+          @if (detailTab === 'overview') {
+            <div class="split-grid split-grid--sidebar mt-5">
+              <div class="rounded-2xl border p-4" style="border-color:var(--border); background:var(--surface-subtle);">
+                <p class="text-sm font-semibold" style="color:var(--text-primary);">Event overview</p>
+                <p class="mt-3 text-sm leading-6" style="color:var(--text-secondary);">{{ selectedEvent.description || 'No description yet.' }}</p>
+
+                <div class="detail-stat-grid mt-5">
+                  <div>
+                    <span>Location</span>
+                    <strong>{{ selectedEvent.location || selectedEvent.locationType }}</strong>
+                  </div>
+                  <div>
+                    <span>Capacity</span>
+                    <strong>{{ selectedEvent.capacityMax || 0 }}</strong>
+                  </div>
+                  <div>
+                    <span>Registered</span>
+                    <strong>{{ selectedEvent.registeredCount }}</strong>
+                  </div>
+                  <div>
+                    <span>Ticket price</span>
+                    <strong>{{ selectedEvent.ticketPrice == null ? 'Free' : selectedEvent.ticketPrice + ' TND' }}</strong>
+                  </div>
+                </div>
+
+                @if (selectedEvent.targetSector.length || selectedEvent.targetStage.length) {
+                  <div class="mt-5">
+                    <div class="tag-list-inline">
+                      @for (sector of selectedEvent.targetSector; track sector) {
+                        <span class="tag-chip-inline">{{ sector }}</span>
+                      }
+                      @for (stage of selectedEvent.targetStage; track stage) {
+                        <span class="tag-chip-inline tag-chip-inline--alt">{{ stage }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (selectedEvent.locationType === 'PRESENTIEL' && selectedEvent.latitude != null) {
+                  <div class="mt-5">
+                    <p class="text-xs font-semibold mb-2" style="color:var(--text-secondary);">
+                      <ng-icon name="lucideMapPin" [size]="'12'" /> Location map
+                    </p>
+                    <div style="height:250px; border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                      <app-map [markers]="[{
+                        id: selectedEvent.id,
+                        title: selectedEvent.title,
+                        type: selectedEvent.type,
+                        status: selectedEvent.status,
+                        startDate: selectedEvent.startDate,
+                        address: selectedEvent.address,
+                        latitude: selectedEvent.latitude!,
+                        longitude: selectedEvent.longitude!,
+                        coverImage: selectedEvent.coverImageUrl
+                      }]"></app-map>
+                    </div>
+                    @if (selectedEvent.address) {
+                      <p class="text-xs mt-1.5" style="color:var(--text-muted);">
+                        <ng-icon name="lucideMapPin" [size]="'11'" /> {{ selectedEvent.address }}
+                      </p>
+                    }
+                  </div>
+                }
+
+                <!-- Read-only speakers -->
+                @if (eventSpeakers.length) {
+                  <div class="mt-5">
+                    <p class="text-xs font-semibold mb-3" style="color:var(--text-secondary);">Speakers</p>
+                    <div class="space-y-3">
+                      @for (speaker of eventSpeakers; track speaker.id) {
+                        <div class="flex items-start gap-3 rounded-xl border p-3" style="border-color:var(--border); background:var(--surface);">
+                          <div class="flex-shrink-0 rounded-full overflow-hidden"
+                            style="width:40px; height:40px; background:var(--badge-blue-bg); display:flex; align-items:center; justify-content:center;"
+                            [style.background-image]="speaker.photoUrl ? 'url(' + speaker.photoUrl + ')' : ''"
+                            [style.background-size]="speaker.photoUrl ? 'cover' : ''"
+                            [style.background-position]="speaker.photoUrl ? 'center' : ''">
+                            @if (!speaker.photoUrl) {
+                              <span class="text-sm font-bold" style="color:#1C4FC3;">{{ speaker.fullName.charAt(0) }}</span>
+                            }
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ speaker.fullName }}</p>
+                            <p class="text-xs mt-0.5" style="color:var(--text-secondary);">
+                              {{ speaker.title || 'Speaker' }}{{ speaker.company ? ' · ' + speaker.company : '' }}
+                            </p>
+                            @if (speaker.bio) {
+                              <p class="text-xs mt-1 line-clamp-2" style="color:var(--text-muted);">{{ speaker.bio }}</p>
+                            }
+                            @if (speaker.linkedinUrl) {
+                              <a class="btn-secondary-inline anchor-like mt-2" [href]="speaker.linkedinUrl" target="_blank" rel="noreferrer">
+                                <ng-icon name="lucideExternalLink" [size]="'12'" /> LinkedIn
+                              </a>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <div class="ticket-actions-row mt-5">
+                  @if (canSubmit(selectedEvent)) {
+                    <button type="button" class="btn-secondary-inline" (click)="submitForValidation(selectedEvent)">Submit</button>
+                  }
+                  @if (canPublish(selectedEvent)) {
+                    <button type="button" class="btn-primary-inline" (click)="publishEvent(selectedEvent)">Publish</button>
+                  }
+                  @if (canApprove(selectedEvent)) {
+                    <button type="button" class="btn-primary-inline" (click)="approveEvent(selectedEvent)">Approve</button>
+                  }
+                  @if (canReject(selectedEvent)) {
+                    <button type="button" class="btn-danger-inline" (click)="rejectEvent(selectedEvent)">Reject</button>
+                  }
+                  @if (canDeleteEvent(selectedEvent)) {
+                    <button type="button" class="btn-danger-inline" (click)="deleteEvent(selectedEvent)">Delete</button>
+                  }
+                </div>
+
+                @if (isAdmin()) {
+                  <div class="mt-3 flex items-center gap-2">
+                    <label class="text-xs font-semibold" style="color:var(--text-secondary);">Change status:</label>
+                    <select
+                      class="form-input text-xs"
+                      style="padding:4px 8px; height:auto;"
+                      [value]="selectedEvent.status"
+                      (change)="changeEventStatus(selectedEvent, $any($event.target).value)">
+                      @for (s of eventStatuses; track s) {
+                        <option [value]="s">{{ s }}</option>
+                      }
+                    </select>
+                  </div>
+                }
+
+                @if (canCreate()) {
+                  <div class="mt-5 rounded-2xl border p-4" style="border-color:var(--border); background:var(--surface);">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-semibold" style="color:var(--text-primary);">AI performance prediction</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Estimate attendance and success before the event runs.</p>
+                      </div>
+                      <button type="button" class="btn-primary-inline" (click)="predictSelectedEvent()" [disabled]="predictingDetails">
+                        <ng-icon name="lucideSparkles" [size]="'14'" />
+                        {{ predictingDetails ? 'Predicting...' : 'Predict' }}
+                      </button>
+                    </div>
+
+                    @if (detailsPredictionError) {
+                      <div class="mt-3 text-xs" style="color:#b91c1c;">{{ detailsPredictionError }}</div>
+                    }
+
+                    @if (detailsRegistrationPrediction || detailsSuccessPrediction) {
+                      <div class="detail-stat-grid mt-4">
+                        @if (detailsRegistrationPrediction) {
+                          <div>
+                            <span>Predicted registrations</span>
+                            <strong>{{ detailsRegistrationPrediction.predicted_registrations }} / {{ selectedEvent.capacityMax || 0 }}</strong>
+                          </div>
+                        }
+                        @if (detailsSuccessPrediction) {
+                          <div>
+                            <span>Success score</span>
+                            <strong [style.color]="detailsSuccessPrediction.label === 'High Potential' ? '#15803d' : detailsSuccessPrediction.label === 'Moderate' ? '#b45309' : '#b91c1c'">
+                              {{ detailsSuccessPrediction.success_score }} / 100
+                            </strong>
+                          </div>
+                        }
+                        @if (detailsSuccessPrediction) {
+                          <div>
+                            <span>Label</span>
+                            <strong [style.color]="detailsSuccessPrediction.label === 'High Potential' ? '#15803d' : detailsSuccessPrediction.label === 'Moderate' ? '#b45309' : '#b91c1c'">
+                              {{ detailsSuccessPrediction.label }}
+                            </strong>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <aside class="space-y-4">
+                <div class="rounded-2xl border p-4" style="border-color:var(--border); background:var(--surface-subtle);">
+                  <p class="text-sm font-semibold" style="color:var(--text-primary);">Registration &amp; ticket</p>
+
+                  @if (selectedEvent.status === 'PUBLIE' && !selectedRegistration) {
+                    <div class="mt-4 flex items-center gap-2">
+                      <label class="text-xs" style="color:var(--text-secondary); white-space:nowrap;">Places:</label>
+                      <input
+                        type="number" min="1" max="10"
+                        [(ngModel)]="numberOfPlacesToRegister"
+                        class="form-input text-xs"
+                        style="width:64px; padding:4px 8px; height:auto;" />
+                      <button type="button" class="btn-primary-inline" (click)="registerForSelected()" [disabled]="processingSelectedAction">
+                        {{ processingSelectedAction ? 'Registering...' : 'Register' }}
+                      </button>
+                    </div>
+                  }
+
+                  @if (selectedRegistration) {
+                    <div class="mt-4 detail-stat-grid">
+                      <div>
+                        <span>Status</span>
+                        <strong>{{ selectedRegistration.status }}</strong>
+                      </div>
+                      <div>
+                        <span>Ticket</span>
+                        <strong>{{ selectedTicket?.ticketNumber || selectedRegistration.ticketNumber || 'Pending' }}</strong>
+                      </div>
+                    </div>
+                    <div class="ticket-actions-row mt-4">
+                      @if (selectedTicket?.paymentStatus === 'PENDING') {
+                        <button type="button" class="btn-primary-inline" (click)="paySelectedTicket()" [disabled]="processingSelectedAction">
+                          <ng-icon name="lucideWallet" [size]="'14'" />
+                          Pay now
+                        </button>
+                      }
+                      @if (selectedTicket) {
+                        <button type="button" class="btn-secondary-inline" (click)="downloadSelectedTicket()" [disabled]="processingSelectedAction">
+                          <ng-icon name="lucideDownload" [size]="'14'" />
+                          Download ticket
+                        </button>
+                      }
+                      @if (selectedRegistration.status === 'INSCRIT' || selectedRegistration.status === 'LISTE_ATTENTE') {
+                        <button type="button" class="btn-danger-inline" (click)="cancelSelectedRegistration()" [disabled]="processingSelectedAction">
+                          <ng-icon name="lucideX" [size]="'14'" />
+                          Cancel
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                @if (canCreate()) {
+                  <div class="rounded-2xl border p-4" style="border-color:var(--border); background:var(--surface-subtle);">
+                    <p class="text-sm font-semibold" style="color:var(--text-primary);">Organizer tools</p>
+                    <label class="profile-field mt-4">
+                      <span>Search by ticket number or attendee name</span>
+                      <input
+                        type="text"
+                        [value]="checkInInput"
+                        (input)="checkInInput = inputValue($event); lookupResult = null; lookupError = ''"
+                        (keyup.enter)="lookupAttendee()"
+                        placeholder="Ticket # or attendee name" />
+                    </label>
+                    <button type="button" class="btn-secondary-inline mt-3" (click)="lookupAttendee()" [disabled]="!checkInInput.trim()">
+                      <ng-icon name="lucideSearch" [size]="'14'" />
+                      Search
+                    </button>
+
+                    @if (lookupError) {
+                      <p class="mt-3 text-xs" style="color:#b91c1c;">{{ lookupError }}</p>
+                    }
+
+                    @if (lookupResult) {
+                      <div class="mt-3 rounded-xl border p-3" style="border-color:var(--border); background:var(--surface);">
+                        <p class="text-xs font-semibold" style="color:var(--text-primary);">
+                          {{ lookupResult.userName || ('User #' + lookupResult.userId) }}
+                        </p>
+                        <div class="mt-1 flex flex-wrap gap-2 text-xs" style="color:var(--text-secondary);">
+                          <span>Status: <strong [style.color]="lookupResult.status === 'PRESENT' ? 'var(--badge-green-text)' : lookupResult.status === 'INSCRIT' ? 'var(--text-primary)' : '#b91c1c'">{{ lookupResult.status }}</strong></span>
+                          <span>·</span>
+                          <span>Places: <strong>{{ lookupResult.numberOfPlaces || 1 }}</strong></span>
+                          <span>·</span>
+                          <span>Ticket: <strong>{{ lookupResult.ticketNumber ? lookupResult.ticketNumber.substring(0, 8).toUpperCase() : 'N/A' }}</strong></span>
+                        </div>
+                        @if (lookupResult.status === 'INSCRIT') {
+                          <button type="button" class="btn-primary-inline mt-3" (click)="checkInFromLookup()">
+                            <ng-icon name="lucideTicket" [size]="'14'" />
+                            Check in
+                          </button>
+                        } @else if (lookupResult.status === 'PRESENT') {
+                          <span class="event-chip-inline mt-3" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Already checked in</span>
+                        } @else {
+                          <span class="event-chip-inline mt-3" style="background:rgba(185,28,28,0.1); color:#b91c1c;">Not eligible for check-in ({{ lookupResult.status }})</span>
+                        }
+                      </div>
+                    }
+
+                    @if (checkInResult) {
+                      <p class="mt-3 text-xs" style="color:var(--badge-green-text);">
+                        Checked in {{ checkInResult.ticketNumber }} for {{ checkInResult.eventTitle }}.
+                      </p>
+                    }
+                  </div>
+                }
+              </aside>
+            </div>
+          }
+
+          @if (detailTab === 'programme') {
+            <div class="mt-5">
+              @if (canCreate()) {
+                <div class="ticket-actions-row mb-4">
+                  <button type="button" class="btn-secondary-inline" (click)="generateProgram()"> <ng-icon name="lucideSparkles" [size]="'14'" /> Generate with AI </button>
+                  <button type="button" class="btn-primary-inline" (click)="openSlotForm()"> <ng-icon name="lucidePlus" [size]="'14'" /> Add slot </button>
+                </div>
+              }
+
+              @if (showSlotForm) {
+                <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
+                  <div class="modal-backdrop" (click)="closeSlotForm()"></div>
+                  <div class="relative rounded-2xl overflow-hidden" style="background:var(--surface); width:min(580px, calc(100vw - 24px)); max-height:90vh; box-shadow:0 24px 64px rgba(0,0,0,0.28); display:flex; flex-direction:column;">
+                    <div class="flex-shrink-0" style="padding:20px 24px 16px; background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+                      <button type="button" (click)="closeSlotForm()"
+                        class="absolute top-4 right-4 flex items-center justify-center rounded-lg"
+                        style="width:32px; height:32px; background:rgba(255,255,255,0.15); border:none; cursor:pointer; color:#fff;" aria-label="Close">
+                        <ng-icon name="lucideX" [size]="'16'" />
+                      </button>
+                      <h2 class="text-base font-bold" style="color:#fff;">{{ editingSlot ? 'Edit Program Slot' : 'Add Program Slot' }}</h2>
+                      <p class="text-xs mt-1" style="color:rgba(255,255,255,0.7);">Configure the session details, timing, and speaker.</p>
+                    </div>
+                    <div style="overflow-y:auto; flex:1; padding:20px 24px 24px;">
+                      <form [formGroup]="slotForm" (ngSubmit)="submitSlotForm()">
+                        <div class="profile-grid">
+                          <label class="profile-field profile-field--full">
+                            <span>Title</span>
+                            <input formControlName="title" type="text" />
+                          </label>
+                          <label class="profile-field">
+                            <span>Type</span>
+                            <select formControlName="type">
+                              @for (type of slotTypes; track type) {
+                                <option [value]="type">{{ type }}</option>
+                              }
+                            </select>
+                          </label>
+                          <label class="profile-field">
+                            <span>Order index</span>
+                            <input formControlName="orderIndex" type="number" min="0" />
+                          </label>
+                          <label class="profile-field">
+                            <span>Start time</span>
+                            <input formControlName="startTime" type="datetime-local" />
+                          </label>
+                          <label class="profile-field">
+                            <span>End time</span>
+                            <input formControlName="endTime" type="datetime-local" />
+                          </label>
+                          <label class="profile-field profile-field--full">
+                            <span>Description</span>
+                            <textarea formControlName="description" rows="3"></textarea>
+                          </label>
+                          <label class="profile-field">
+                            <span>Speaker</span>
+                            <select formControlName="speakerId">
+                              <option [ngValue]="null">No speaker</option>
+                              @for (speaker of speakers; track speaker.id) {
+                                <option [value]="speaker.id">{{ speaker.fullName }}</option>
+                              }
+                            </select>
+                          </label>
+                          <div class="profile-field">
+                            <span>Import from LinkedIn</span>
+                            <button type="button" class="btn-secondary-inline" (click)="searchLinkedInCandidates()">
+                              <ng-icon name="lucideGlobe" [size]="'14'" />
+                              Search candidates
+                            </button>
+                          </div>
+                        </div>
+
+                        @if (linkedinCandidates.length) {
+                          <div class="linkedin-results-inline mt-3">
+                            @for (candidate of linkedinCandidates; track candidate.linkedinUrl || candidate.fullName) {
+                              <button type="button" class="linkedin-candidate-inline" (click)="importCandidate(candidate)">
+                                <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ candidate.fullName }}</span>
+                                <span class="text-xs" style="color:var(--text-secondary);">{{ candidate.title || 'Speaker' }} · {{ candidate.company || 'Unknown' }}</span>
+                              </button>
+                            }
+                          </div>
+                        }
+
+                        <div class="flex items-center justify-end gap-2 mt-5">
+                          <button type="button" class="btn-secondary-inline" (click)="closeSlotForm()">Cancel</button>
+                          <button type="submit" class="text-xs font-semibold rounded-lg cursor-pointer"
+                            style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:7px 16px;"
+                            [disabled]="slotForm.invalid || savingSlot">
+                            {{ savingSlot ? 'Saving...' : (editingSlot ? 'Update slot' : 'Create slot') }}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (!program.length) {
+                <div class="empty-card">
+                  <p class="text-sm font-semibold" style="color:var(--text-primary);">No program slots yet</p>
+                </div>
+              } @else {
+                <div class="program-list-inline">
+                  @for (slot of program; track slot.id) {
+                    <article class="program-slot-inline">
+                      <div>
+                        <div class="ticket-actions-row">
+                          <span class="event-chip-inline">{{ slot.type }}</span>
+                          <span class="text-xs" style="color:var(--text-muted);">#{{ slot.orderIndex }}</span>
+                        </div>
+                        <p class="mt-3 text-sm font-semibold" style="color:var(--text-primary);">{{ slot.title }}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ slot.description || 'No description.' }}</p>
+                        <p class="text-xs mt-2" style="color:var(--text-muted);">
+                          {{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}
+                        </p>
+
+                        @if (slot.speakerId && slot.speakerName) {
+                          <div class="flex items-start gap-3 rounded-xl border mt-3 p-3"
+                               style="border-color:var(--border); background:var(--surface);">
+                            <div class="flex-shrink-0 rounded-full overflow-hidden"
+                                 style="width:40px; height:40px; background:var(--badge-blue-bg); display:flex; align-items:center; justify-content:center;"
+                                 [style.background-image]="slot.speakerPhotoUrl ? 'url(' + slot.speakerPhotoUrl + ')' : ''"
+                                 [style.background-size]="slot.speakerPhotoUrl ? 'cover' : ''"
+                                 [style.background-position]="slot.speakerPhotoUrl ? 'center' : ''">
+                              @if (!slot.speakerPhotoUrl) {
+                                <span class="text-sm font-bold" style="color:#1C4FC3;">{{ slot.speakerName!.charAt(0) }}</span>
+                              }
+                            </div>
+                            <div class="flex-1 min-w-0">
+                              <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ slot.speakerName }}</p>
+                              <p class="text-xs mt-0.5" style="color:var(--text-secondary);">
+                                {{ slot.speakerTitle || 'Speaker' }}{{ slot.speakerCompany ? ' · ' + slot.speakerCompany : '' }}
+                              </p>
+                              @if (slot.speakerLinkedinUrl) {
+                                <a class="btn-secondary-inline anchor-like mt-2" [href]="slot.speakerLinkedinUrl" target="_blank" rel="noreferrer">
+                                  <ng-icon name="lucideExternalLink" [size]="'12'" /> LinkedIn
+                                </a>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                      @if (canCreate()) {
+                        <div class="ticket-actions-row mt-4">
+                          <button type="button" class="btn-secondary-inline" (click)="openSlotForm(slot)">Edit</button>
+                          @if (slot.speakerId) {
+                            <button type="button" class="btn-secondary-inline" (click)="unassignSpeaker(slot)">Unassign speaker</button>
+                          }
+                          <button type="button" class="btn-danger-inline" (click)="deleteSlot(slot)">Delete</button>
+                        </div>
+                      }
+                    </article>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (detailTab === 'registrations' && canCreate()) {
+            <div class="mt-5">
+              @if (!registrations.length) {
+                <div class="empty-card">
+                  <p class="text-sm font-semibold" style="color:var(--text-primary);">No registrations yet</p>
+                </div>
+              } @else {
+                <div class="table-scroll">
+                  <table class="team-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Places</th>
+                        <th>Registered at</th>
+                        <th>Ticket</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (registration of registrations; track registration.id) {
+                        <tr>
+                          <td>{{ registration.userName || registration.userId }}</td>
+                          <td>{{ registration.status }}</td>
+                          <td>{{ registration.numberOfPlaces || 1 }}</td>
+                          <td>{{ formatDateTime(registration.registeredAt) }}</td>
+                          <td>{{ registration.ticketNumber || 'Pending' }}</td>
+                          <td>
+                            @if (registration.status === 'INSCRIT' && !registration.attended) {
+                              <button type="button" class="btn-secondary-inline" (click)="checkInRegistration(registration)">Check in</button>
+                            } @else if (registration.attended) {
+                              <span class="event-chip-inline" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Checked in</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── FEEDBACK TAB ── -->
+          @if (detailTab === 'feedback' && (selectedEvent.status === 'TERMINE' || selectedEvent.status === 'PUBLIE')) {
+            <div class="mt-5">
+
+              @if (loadingFeedback) {
+                <div style="display:flex; align-items:center; justify-content:center; padding:40px 0; gap:10px; color:var(--text-muted);">
+                  <ng-icon name="lucideCircleDashed" [size]="'20'" style="animation:spin 1s linear infinite;" />
+                  <span class="text-sm">Loading feedback…</span>
+                </div>
+              } @else {
+                <!-- ── Stats + Submit layout ── -->
+                <div class="split-grid split-grid--sidebar">
+
+                  <!-- Left: Stats + Reviews -->
+                  <div class="space-y-5">
+
+                    <!-- Rating overview card -->
+                    @if (feedbackStats && feedbackStats.totalCount > 0) {
+                      <div class="rounded-2xl border p-5" style="background:var(--surface-subtle); border-color:var(--border);">
+                        <div class="flex items-center gap-5 mb-4">
+                          <!-- Big average -->
+                          <div style="text-align:center; flex-shrink:0;">
+                            <p class="font-extrabold" style="font-size:3rem; line-height:1; color:var(--text-primary); letter-spacing:-0.04em;">
+                              {{ feedbackStats.averageRating }}
+                            </p>
+                            <!-- Filled stars -->
+                            <div style="display:flex; gap:3px; justify-content:center; margin-top:6px;">
+                              @for (star of [1,2,3,4,5]; track star) {
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                  <defs>
+                                    <linearGradient [id]="'sg' + star + selectedEvent!.id">
+                                      <stop [attr.offset]="(feedbackStats.averageRating - star + 1) >= 1 ? '100%' : (feedbackStats.averageRating - star + 1) <= 0 ? '0%' : ((feedbackStats.averageRating - star + 1) * 100) + '%'" stop-color="#F59E0B"/>
+                                      <stop [attr.offset]="(feedbackStats.averageRating - star + 1) >= 1 ? '100%' : (feedbackStats.averageRating - star + 1) <= 0 ? '0%' : ((feedbackStats.averageRating - star + 1) * 100) + '%'" stop-color="#e5e7eb"/>
+                                    </linearGradient>
+                                  </defs>
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                                    [attr.fill]="feedbackStats.averageRating >= star ? '#F59E0B' : feedbackStats.averageRating >= star - 0.5 ? '#F59E0B' : '#e5e7eb'"
+                                    stroke="none"/>
+                                </svg>
+                              }
+                            </div>
+                            <p class="text-xs mt-1" style="color:var(--text-muted);">{{ feedbackStats.totalCount }} review{{ feedbackStats.totalCount !== 1 ? 's' : '' }}</p>
+                          </div>
+
+                          <!-- Distribution bars -->
+                          <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+                            @for (star of [5,4,3,2,1]; track star) {
+                              <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="text-xs font-medium" style="color:var(--text-secondary); width:10px; text-align:right;">{{ star }}</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                <div style="flex:1; height:7px; background:var(--surface-subtle); border-radius:99px; overflow:hidden; border:1px solid var(--border);">
+                                  <div style="height:100%; border-radius:99px; background:linear-gradient(90deg,#F59E0B,#FBBF24); transition:width 0.5s ease;"
+                                    [style.width.%]="feedbackDistributionPct(star)">
+                                  </div>
+                                </div>
+                                <span class="text-xs" style="color:var(--text-muted); width:28px;">{{ feedbackDistributionPct(star) }}%</span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Reviews list -->
+                    @if (feedbackList.length === 0) {
+                      <div class="empty-card">
+                        <ng-icon name="lucideMessageSquare" [size]="'28'" style="color:var(--text-muted); margin-bottom:8px;" />
+                        <p class="text-sm font-semibold" style="color:var(--text-primary);">No reviews yet</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Be the first to share your experience.</p>
+                      </div>
+                    } @else {
+                      <div class="space-y-3">
+                        @for (fb of feedbackList; track fb.id) {
+                          <div class="rounded-2xl border p-4"
+                            style="border-color:var(--border); background:var(--surface);"
+                            [style.border-color]="fb.own ? 'rgba(28,79,195,0.3)' : 'var(--border)'"
+                            [style.box-shadow]="fb.own ? '0 0 0 1px rgba(28,79,195,0.12)' : 'none'">
+
+                            <div class="flex items-start gap-3">
+                              <!-- Avatar -->
+                              <div class="flex-shrink-0 rounded-full flex items-center justify-center text-xs font-bold"
+                                style="width:36px; height:36px; color:#fff;"
+                                [style.background]="feedbackAvatarColor(fb.userId)">
+                                {{ feedbackInitials(fb.userName) }}
+                              </div>
+
+                              <div style="flex:1; min-width:0;">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                  <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ fb.userName }}</span>
+                                  @if (fb.own) {
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(28,79,195,0.1); color:#1C4FC3;">You</span>
+                                  }
+                                  <span class="text-xs ml-auto" style="color:var(--text-muted);">
+                                    {{ formatDateTime(fb.createdAt) }}
+                                  </span>
+                                </div>
+
+                                <!-- Star row -->
+                                <div style="display:flex; gap:2px; margin-bottom:8px;">
+                                  @for (star of [1,2,3,4,5]; track star) {
+                                    <svg width="13" height="13" viewBox="0 0 24 24" stroke="none"
+                                      [attr.fill]="fb.rating >= star ? '#F59E0B' : '#e5e7eb'">
+                                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                  }
+                                  <span class="text-xs font-semibold ml-1" style="color:var(--text-secondary);">{{ feedbackRatingLabel(fb.rating) }}</span>
+                                </div>
+
+                                @if (fb.comment) {
+                                  <p class="text-sm leading-relaxed" style="color:var(--text-secondary);">{{ fb.comment }}</p>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Right sidebar: Submit form or status -->
+                  <div>
+                    @if (feedbackEligibility?.canSubmit) {
+                      <!-- Submit feedback card -->
+                      <div class="rounded-2xl border p-5 sticky" style="top:0; background:var(--surface); border-color:var(--border); box-shadow:0 4px 24px rgba(11,15,42,0.08);">
+                        <p class="text-sm font-bold mb-1" style="color:var(--text-primary);">Share your experience</p>
+                        <p class="text-xs mb-4" style="color:var(--text-secondary);">Your feedback helps improve future events.</p>
+
+                        <!-- Interactive star selector -->
+                        <div class="mb-4">
+                          <p class="text-xs font-semibold mb-2" style="color:var(--text-secondary);">Your rating</p>
+                          <div style="display:flex; gap:6px; align-items:center;">
+                            @for (star of [1,2,3,4,5]; track star) {
+                              <button type="button"
+                                (click)="setFeedbackRating(star)"
+                                (mouseenter)="feedbackHoverRating = star"
+                                (mouseleave)="feedbackHoverRating = 0"
+                                style="background:none; border:none; cursor:pointer; padding:2px; transition:transform 0.1s;"
+                                [style.transform]="(feedbackHoverRating || feedbackRating) >= star ? 'scale(1.2)' : 'scale(1)'"
+                                [attr.aria-label]="'Rate ' + star + ' star'">
+                                <svg width="28" height="28" viewBox="0 0 24 24" stroke="none" style="transition:fill 0.15s;">
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                                    [attr.fill]="(feedbackHoverRating || feedbackRating) >= star ? '#F59E0B' : '#e5e7eb'"/>
+                                </svg>
+                              </button>
+                            }
+                            @if (feedbackRating > 0) {
+                              <span class="text-xs font-semibold" style="color:#F59E0B; margin-left:4px;">{{ feedbackRatingLabel(feedbackRating) }}</span>
+                            }
+                          </div>
+                        </div>
+
+                        <!-- Comment textarea -->
+                        <div class="mb-4">
+                          <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Comment <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+                          <textarea
+                            [(ngModel)]="feedbackComment"
+                            rows="4"
+                            placeholder="What did you like? What could be improved?"
+                            maxlength="2000"
+                            class="w-full text-sm rounded-xl border focus:outline-none resize-none"
+                            style="padding:10px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); line-height:1.6;">
+                          </textarea>
+                          <p class="text-xs mt-1 text-right" style="color:var(--text-muted);">{{ feedbackComment.length }} / 2000</p>
+                        </div>
+
+                        @if (feedbackError) {
+                          <div class="rounded-lg px-3 py-2 mb-3 text-xs" style="background:var(--badge-red-bg); color:var(--badge-red-text);">{{ feedbackError }}</div>
+                        }
+
+                        <button type="button"
+                          (click)="submitFeedback()"
+                          [disabled]="feedbackRating === 0 || submittingFeedback"
+                          class="w-full rounded-xl text-sm font-semibold cursor-pointer transition-opacity"
+                          style="padding:10px; border:none; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff;"
+                          [style.opacity]="feedbackRating === 0 || submittingFeedback ? '0.5' : '1'">
+                          @if (submittingFeedback) {
+                            Submitting…
+                          } @else {
+                            Submit feedback
+                          }
+                        </button>
+                      </div>
+
+                    } @else if (feedbackEligibility?.hasSubmitted) {
+                      <!-- Already submitted -->
+                      <div class="rounded-2xl border p-5" style="background:linear-gradient(135deg,rgba(28,79,195,0.04),rgba(29,19,132,0.04)); border-color:rgba(28,79,195,0.2);">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                          <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#1C4FC3,#1D1384); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <ng-icon name="lucideCheck" [size]="'18'" style="color:#fff;" />
+                          </div>
+                          <div>
+                            <p class="text-sm font-bold" style="color:var(--text-primary);">Feedback submitted</p>
+                            <p class="text-xs" style="color:var(--text-secondary);">Thank you for sharing your experience!</p>
+                          </div>
+                        </div>
+                        @if (myFeedback) {
+                          <div style="display:flex; gap:2px; align-items:center;">
+                            @for (star of [1,2,3,4,5]; track star) {
+                              <svg width="14" height="14" viewBox="0 0 24 24" stroke="none"
+                                [attr.fill]="myFeedback.rating >= star ? '#F59E0B' : '#e5e7eb'">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                              </svg>
+                            }
+                            <span class="text-xs font-semibold ml-1" style="color:var(--text-secondary);">{{ feedbackRatingLabel(myFeedback.rating) }}</span>
+                          </div>
+                        }
+                      </div>
+
+                    } @else {
+                      <!-- Not eligible -->
+                      <div class="rounded-2xl border p-5" style="background:var(--surface-subtle); border-color:var(--border);">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                          <div style="width:36px; height:36px; border-radius:50%; background:var(--surface-input); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
+                            <ng-icon name="lucideMessageSquare" [size]="'18'" style="color:var(--text-muted);" />
+                          </div>
+                          <div>
+                            <p class="text-sm font-bold" style="color:var(--text-primary);">Feedback unavailable</p>
+                            <p class="text-xs" style="color:var(--text-secondary);">Only registered attendees can leave a review.</p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                </div>
+              }
+
+            </div>
+          }
+
+        </div><!-- end scrollable body -->
+      </div><!-- end modal panel -->
+    </div><!-- end modal overlay -->
+  }
+</div>

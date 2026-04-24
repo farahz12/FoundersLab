@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -8,33 +8,36 @@ import {
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmProgressImports } from '@spartan-ng/helm/progress';
+import { EventService } from '../../services/event.service';
+import { EventMapMarker } from '../../models/event';
 
 interface Stat { label: string; value: string; delta: string; up: boolean; icon: string; color: string; bg: string; }
 interface Startup { name: string; sector: string; stage: string; score: number; status: string; founder: string; }
-interface Event { title: string; type: string; date: string; time: string; attendees: number; icon: string; }
+interface DashEvent { title: string; type: string; date: string; time: string; attendees: number; icon: string; }
 interface Activity { user: string; action: string; time: string; initials: string; color: string; }
 
 @Component({
   selector: 'app-home',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent, RouterLink, HlmBadgeImports, HlmProgressImports],
   providers: [provideIcons({
     lucideRocket, lucideUsers, lucideTrendingUp, lucideCalendar,
     lucideArrowUp, lucideArrowRight, lucideMapPin, lucideVideo,
     lucideActivity, lucideMessageSquare, lucideStar,
   })],
   template: `
+
     <div class="page-shell">
       <!-- Welcome -->
       <div class="page-header">
         <div>
           <h2 class="text-xl font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">
-            Welcome back, Mohamed Slimane 👋
+            Welcome back, Farah Zouari 👋
           </h2>
           <p class="text-sm mt-0.5" style="color:var(--text-secondary);">Here's what's happening across your ecosystem today.</p>
         </div>
         <div class="page-header-actions">
-          <a routerLink="/projects"
+          <a routerLink="/app/projects"
             class="flex w-full items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all hover:shadow-md sm:w-auto"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
             <ng-icon name="lucideRocket" [size]="'14'" />
@@ -76,7 +79,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
           style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
           <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
             <h3 class="text-sm font-bold" style="color:var(--text-primary);">Recent Startups</h3>
-            <a routerLink="/projects" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
+            <a routerLink="/app/projects" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
               View all <ng-icon name="lucideArrowRight" [size]="'12'" />
             </a>
           </div>
@@ -141,7 +144,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
             style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
             <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
               <h3 class="text-sm font-bold" style="color:var(--text-primary);">Upcoming Events</h3>
-              <a routerLink="/events" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
+              <a routerLink="/app/events" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
                 View all <ng-icon name="lucideArrowRight" [size]="'12'" />
               </a>
             </div>
@@ -194,10 +197,54 @@ interface Activity { user: string; action: string; time: string; initials: strin
           </div>
         </div>
       </div>
+
+      <!-- Events Map -->
+      <div class="rounded-xl border overflow-hidden"
+        style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
+        <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
+          <div>
+            <h3 class="text-sm font-bold" style="color:var(--text-primary);">Events Map</h3>
+            <p class="text-xs mt-0.5" style="color:var(--text-muted);">In-person events across the region</p>
+          </div>
+          <a routerLink="/app/events" class="text-xs font-semibold flex items-center gap-1" style="color:#1C4FC3;">
+            View all <ng-icon name="lucideArrowRight" [size]="'12'" />
+          </a>
+        </div>
+        <div style="height:380px; position:relative;">
+          @if (loadingMapMarkers) {
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+              <p class="text-sm" style="color:var(--text-muted);">Loading map…</p>
+            </div>
+          } @else {
+            <app-map [markers]="mapMarkers"></app-map>
+          }
+        </div>
+      </div>
+
     </div>
   `,
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  private readonly eventService = inject(EventService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  protected mapMarkers: EventMapMarker[] = [];
+  protected loadingMapMarkers = true;
+
+  ngOnInit(): void {
+    this.eventService.getEventsForMap().subscribe({
+      next: (markers) => {
+        this.mapMarkers = markers;
+        this.loadingMapMarkers = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingMapMarkers = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   protected readonly stats: Stat[] = [
     { label: 'Total Startups',       value: '48',  delta: '+3 this month', up: true,  icon: 'lucideRocket',      color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
     { label: 'Active Mentors',        value: '127', delta: '+8 this month', up: true,  icon: 'lucideUsers',       color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
@@ -214,7 +261,7 @@ export class HomeComponent {
     { name: 'LogiTrack',   sector: 'Logistics',    stage: 'Series A',  score: 85, status: 'Active', founder: 'Omar Ladraa'      },
   ];
 
-  protected readonly upcomingEvents: Event[] = [
+  protected readonly upcomingEvents: DashEvent[] = [
     { title: 'Pitch Day Spring 2026',        type: 'Pitch',    date: 'Apr 10', time: '14:00', attendees: 87,  icon: 'lucideRocket'   },
     { title: 'Fundraising Workshop',          type: 'Workshop', date: 'Apr 15', time: '10:00', attendees: 42,  icon: 'lucideActivity' },
     { title: 'AI in Startups Webinar',        type: 'Webinar',  date: 'Apr 20', time: '18:00', attendees: 134, icon: 'lucideVideo'    },

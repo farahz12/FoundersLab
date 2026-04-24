@@ -22,8 +22,8 @@ interface Startup {
 
 @Component({
   selector: 'app-projects',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideRocket, lucidePlus, lucideSearch, lucideFilter,
     lucideStar, lucideEye, lucideEdit, lucideChevronRight,

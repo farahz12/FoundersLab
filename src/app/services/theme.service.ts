@@ -21,11 +21,13 @@ export class ThemeService {
       }
     });
 
-    // Listen for system preference changes when in system mode
+    // Listen for system preference changes when in system mode.
+    // Setting the signal to the same value won't retrigger the effect,
+    // so we directly update the class instead.
     if (typeof window !== 'undefined') {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
         if (this.theme() === 'system') {
-          this.theme.set('system'); // Trigger effect
+          document.documentElement.classList.toggle('dark', e.matches);
         }
       });
     }

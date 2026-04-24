@@ -11,8 +11,8 @@ interface Document { name: string; type: string; date: string; size: string; }
 
 @Component({
   selector: 'app-legal',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideScale, lucideCheckCircle, lucideCircle, lucideAlertCircle,
     lucideFileText, lucideDownload, lucideBell, lucideChevronRight,

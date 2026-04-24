@@ -22,8 +22,8 @@ interface Partner {
 
 @Component({
   selector: 'app-partnerships',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideHandshake, lucidePlus, lucideBuilding, lucideUsers,
     lucideCalendar, lucideCheck, lucideEdit, lucideTrash,

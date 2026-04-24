@@ -17,8 +17,8 @@ interface RoadmapStep {
 
 @Component({
   selector: 'app-roadmaps',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideMap, lucidePlus, lucideCheck, lucideCircle, lucideClock,
     lucideCalendar, lucideEdit, lucideTrash, lucideArrowRight,

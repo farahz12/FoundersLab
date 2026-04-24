@@ -14,14 +14,15 @@ import {
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeService } from '../services/theme.service';
+import { AuthService } from '../core/services/auth.service';
 
 interface NavItem { icon: string; label: string; route: string; }
 interface Notification { id: number; title: string; body: string; time: string; read: boolean; type: 'alert' | 'info' | 'success'; }
 
 @Component({
   selector: 'app-layout',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIconComponent],
   providers: [
     provideIcons({
       lucideBell, lucideCalendar, lucideChevronDown, lucideGraduationCap,
@@ -132,13 +133,13 @@ interface Notification { id: number; title: string; body: string; time: string; 
           >
             <div class="flex items-center justify-center rounded-full"
               style="width:36px; height:36px; flex-shrink:0; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:12px; font-weight:700;">
-              MS
+              {{ userInitials() }}
             </div>
             <div class="sidebar-label ml-2.5 text-left"
               [style.opacity]="sidebarExpanded() ? 1 : 0"
               [style.transition-delay]="sidebarExpanded() ? '0.1s' : '0s'">
-              <p style="font-size:12px; font-weight:600; color:#fff; line-height:1.3;">Mohamed Slimane</p>
-              <p style="font-size:11px; color:var(--sidebar-muted);">Founder</p>
+              <p style="font-size:12px; font-weight:600; color:#fff; line-height:1.3;">{{ userDisplayName() }}</p>
+              <p style="font-size:11px; color:var(--sidebar-muted);">{{ userRoleLabel() }}</p>
             </div>
           </button>
         </div>
@@ -207,11 +208,11 @@ interface Notification { id: number; title: string; body: string; time: string; 
             >
               <div class="flex items-center justify-center rounded-full flex-shrink-0"
                 style="width:32px; height:32px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:11px; font-weight:700;">
-                MS
+                {{ userInitials() }}
               </div>
               <div class="hidden md:block text-left">
-                <p class="text-xs font-semibold leading-none" style="color:var(--text-primary);">Mohamed Slimane</p>
-                <p class="text-xs leading-none mt-0.5" style="color:var(--text-muted);">Founder</p>
+                <p class="text-xs font-semibold leading-none" style="color:var(--text-primary);">{{ userDisplayName() }}</p>
+                <p class="text-xs leading-none mt-0.5" style="color:var(--text-muted);">{{ userRoleLabel() }}</p>
               </div>
               <ng-icon name="lucideChevronDown" [size]="'13'" style="color:var(--text-muted);" />
             </button>
@@ -314,14 +315,14 @@ interface Notification { id: number; title: string; body: string; time: string; 
               </button>
               <div class="flex items-center justify-center rounded-full mx-auto mb-3"
                 style="width:72px; height:72px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:22px; font-weight:800; border:3px solid rgba(255,255,255,0.15);">
-                MS
+                {{ userInitials() }}
               </div>
-              <h2 style="color:#fff; font-size:18px; font-weight:700; letter-spacing:-0.02em; margin:0 0 4px;">Mohamed Slimane</h2>
-              <p style="color:rgb(229 231 235); font-size:13px; margin:0;">Founder · FoundersLab</p>
+              <h2 style="color:#fff; font-size:18px; font-weight:700; letter-spacing:-0.02em; margin:0 0 4px;">{{ userDisplayName() }}</h2>
+              <p style="color:rgb(229 231 235); font-size:13px; margin:0;">{{ userRoleLabel() }} · FoundersLab</p>
               <span class="inline-flex items-center gap-1 mt-3 px-3 py-1 rounded-full text-xs font-semibold"
                 style="background:rgba(108,62,255,0.25); color:#93C5FD;">
                 <ng-icon name="lucideStar" [size]="'11'" />
-                Premium Plan
+                {{ userRoleLabel() }}
               </span>
             </div>
 
@@ -332,21 +333,21 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   <ng-icon name="lucideMail" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
                   <div>
                     <p class="text-xs" style="color:var(--text-muted);">Email</p>
-                    <p class="text-sm font-medium" style="color:var(--text-primary);">slimane&#64;founderslab.io</p>
+                    <p class="text-sm font-medium" style="color:var(--text-primary);">{{ authService.getEmail() || 'No email' }}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
                   <ng-icon name="lucideBriefcase" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
                   <div>
                     <p class="text-xs" style="color:var(--text-muted);">Role</p>
-                    <p class="text-sm font-medium" style="color:var(--text-primary);">Founder &amp; Admin</p>
+                    <p class="text-sm font-medium" style="color:var(--text-primary);">{{ userRoleLabel() }}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-3 rounded-lg p-3" style="background:var(--surface-subtle);">
                   <ng-icon name="lucideGlobe" [size]="'15'" style="color:#1C4FC3; flex-shrink:0;" />
                   <div>
                     <p class="text-xs" style="color:var(--text-muted);">Member since</p>
-                    <p class="text-sm font-medium" style="color:var(--text-primary);">January 2026</p>
+                    <p class="text-sm font-medium" style="color:var(--text-primary);">FoundersLab Member</p>
                   </div>
                 </div>
               </div>
@@ -360,7 +361,14 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   Edit Profile
                 </button>
                 <button
-                  (click)="showProfile.set(false)"
+                  (click)="showProfile.set(false); openProfilePage()"
+                  class="flex items-center justify-center gap-1.5 rounded-xl flex-1 text-sm font-semibold cursor-pointer transition-colors"
+                  style="background:var(--surface-subtle); color:var(--text-primary); border:1px solid var(--border); padding:10px;">
+                  <ng-icon name="lucideUser" [size]="'14'" />
+                  Full Profile
+                </button>
+                <button
+                  (click)="logout()"
                   class="flex items-center justify-center gap-1.5 rounded-xl text-sm font-semibold cursor-pointer transition-colors hover:bg-red-50 dark:hover:bg-gray-800"
                   style="background:#FEF2F2; color:var(--badge-red-text); border:none; padding:10px 16px;">
                   <ng-icon name="lucideLogOut" [size]="'14'" />
@@ -402,7 +410,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 }
               </nav>
               <div style="padding:12px 16px; border-top:1px solid var(--border-subtle);">
-                <button (click)="showSettings.set(false)"
+                <button (click)="logout()"
                   class="flex items-center gap-2 w-full rounded-lg text-left cursor-pointer transition-colors hover:bg-red-50 dark:hover:bg-gray-800"
                   style="padding:8px 10px; border:none; background:transparent; color:var(--badge-red-text); font-family:var(--font-sans);">
                   <ng-icon name="lucideLogOut" [size]="'14'" />
@@ -728,6 +736,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
 })
 export class LayoutComponent {
   private readonly router = inject(Router);
+  protected readonly authService = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
 
   protected readonly sidebarExpanded   = signal(false);
@@ -798,15 +807,15 @@ export class LayoutComponent {
   }
 
   protected readonly navItems: NavItem[] = [
-    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/dashboard'    },
-    { icon: 'lucideRocket',          label: 'Projects',     route: '/projects'     },
-    { icon: 'lucideUsers',           label: 'Community',    route: '/community'    },
-    { icon: 'lucideScale',           label: 'Legal',        route: '/legal'        },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investments'  },
-    { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/mentoring'    },
-    { icon: 'lucideMap',             label: 'Roadmaps',     route: '/roadmaps'     },
-    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/partnerships' },
-    { icon: 'lucideCalendar',        label: 'Events',       route: '/events'       },
+    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
+    { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
+    { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
+    { icon: 'lucideScale',           label: 'Legal',        route: '/app/legal'        },
+    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
+    { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
+    { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
+    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },
+    { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
   ];
 
   private readonly url = toSignal(
@@ -816,7 +825,51 @@ export class LayoutComponent {
 
   protected readonly currentPageTitle = computed(() => {
     this.url();
-    const segment = this.router.url.split('/')[1]?.split('?')[0] ?? '';
-    return this.navItems.find((n) => n.route === '/' + segment)?.label ?? 'FoundersLab';
+    const cleanUrl = this.router.url.split('?')[0];
+    return this.navItems.find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
   });
+
+  protected readonly userDisplayName = computed(() => {
+    const email = this.authService.getEmail();
+    if (!email) {
+      return 'FoundersLab Member';
+    }
+
+    return email.split('@')[0].replace(/[._-]+/g, ' ');
+  });
+
+  protected readonly userRoleLabel = computed(() => {
+    const role = this.authService.getRole();
+    if (!role) {
+      return 'Member';
+    }
+
+    if (role === 'PARTENAIRE') {
+      return 'Partner';
+    }
+
+    return role.charAt(0) + role.slice(1).toLowerCase();
+  });
+
+  protected readonly userInitials = computed(() => {
+    const label = this.userDisplayName()
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || '')
+      .join('');
+
+    return label || 'FL';
+  });
+
+  protected openProfilePage(): void {
+    this.closeMobileNav();
+    this.router.navigate(['/app/profile']);
+  }
+
+  protected logout(): void {
+    this.showProfile.set(false);
+    this.showSettings.set(false);
+    this.authService.logout();
+  }
 }

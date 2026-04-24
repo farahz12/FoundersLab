@@ -11,8 +11,8 @@ interface MentorRelation { mentor: string; expertise: string; sessions: number; 
 
 @Component({
   selector: 'app-mentoring',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideGraduationCap, lucidePlus, lucideCalendar, lucideClock,
     lucideMessageSquare, lucideCheck, lucideTarget, lucideStar,

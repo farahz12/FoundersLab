@@ -11,8 +11,8 @@ interface Request { startup: string; investor: string; status: 'Pending' | 'Acce
 
 @Component({
   selector: 'app-investments',
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIconComponent],
   providers: [provideIcons({
     lucideTrendingUp, lucidePlus, lucideFilter, lucideSearch,
     lucideDollarSign, lucideBuilding, lucideCheck, lucideX,

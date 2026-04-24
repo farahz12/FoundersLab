@@ -1,5 +1,46 @@
+# CLAUDE.md
 
-You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+npm start          # Dev server at http://localhost:4200
+npm run build      # Production build
+npm test           # Run tests with Vitest
+```
+
+To run a single test file: `npx vitest run src/app/path/to/file.spec.ts`
+
+## Architecture
+
+**FoundersLab** is an Angular 21 startup-ecosystem platform (SPA) with three layout zones:
+
+| Zone | Path prefix | Guard |
+|------|-------------|-------|
+| Public landing | `/` | none |
+| Auth | `/auth` | none |
+| App (dashboard) | `/app` | `authGuard` |
+
+The `authGuard` (`src/app/core/services/auth.guard.ts`) reads a JWT from `localStorage` via `AuthService`. The `jwtInterceptor` (`src/app/core/interceptors/jwt.interceptor.ts`) attaches the `Bearer` token to every HTTP request and redirects to `/auth/login` on 401.
+
+**Backend API base URL** is configured in `src/app/core/config/api.config.ts`:
+```ts
+export const USER_API_BASE = 'http://localhost:8091/api';
+export const EVENT_API_BASE = 'http://localhost:8091/api';
+```
+
+**Directory layout:**
+- `src/app/core/` — auth services, JWT interceptor, API config, and user model (single source of truth for `UserRole`)
+- `src/app/services/` — feature-level HTTP services (events, tickets, certificates, speakers, etc.)
+- `src/app/models/` — domain models for event-management features (Event, Ticket, Speaker, Badge, etc.)
+- `src/app/pages/` — one folder per route; components are largely self-contained with inline templates
+- `src/app/layout/` — `LayoutComponent` (authenticated shell: collapsible sidebar, topbar, notifications, profile/settings modals)
+- `src/app/shared/` — shared UI pieces (currently `MapComponent` using Leaflet)
+
+**UI stack:** Tailwind CSS v4 (PostCSS), `@spartan-ng/brain` headless primitives, `@ng-icons/lucide` icons, `class-variance-authority` + `clsx` + `tailwind-merge` for variant styling. Theme (light/dark/system) is managed by `ThemeService` via CSS custom properties on `:root`.
+
+**Roles:** `USER | ADMIN | MENTOR | INVESTOR | PARTNER | PARTENAIRE` — the backend may prefix roles with `ROLE_`; `AuthService.normalizeRole()` strips that prefix.
 
 ## TypeScript Best Practices
 
