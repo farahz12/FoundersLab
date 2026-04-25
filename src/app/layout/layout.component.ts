@@ -9,7 +9,7 @@ import {
   lucideBriefcase, lucideShield, lucideGlobe, lucideCheck,
   lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
   lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
-  lucideChevronRight, lucideLanguages, lucideCreditCard,
+  lucideChevronRight, lucideLanguages, lucideCreditCard, lucideClipboardList,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -32,7 +32,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideBriefcase, lucideShield, lucideGlobe, lucideCheck,
       lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
       lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
-      lucideChevronRight, lucideLanguages, lucideCreditCard,
+      lucideChevronRight, lucideLanguages, lucideCreditCard, lucideClipboardList,
     }),
   ],
   template: `
@@ -806,17 +806,23 @@ export class LayoutComponent {
     this.mobileNavOpen.set(false);
   }
 
-  protected readonly navItems: NavItem[] = [
-    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
-    { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
-    { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
-    { icon: 'lucideScale',           label: 'Legal',        route: '/app/legal'        },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
-    { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
-    { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
-    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },
-    { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
+  protected readonly allNavItems: Array<NavItem & { adminOnly?: boolean }> = [
+    { icon: 'lucideLayoutDashboard', label: 'Dashboard',      route: '/app/dashboard'       },
+    { icon: 'lucideRocket',          label: 'Projects',        route: '/app/projects'        },
+    { icon: 'lucideUsers',           label: 'Community',       route: '/app/community'       },
+    { icon: 'lucideScale',           label: 'Legal',           route: '/app/legal'           },
+    { icon: 'lucideTrendingUp',      label: 'Investments',     route: '/app/investments'     },
+    { icon: 'lucideGraduationCap',   label: 'Mentoring',       route: '/app/mentoring'       },
+    { icon: 'lucideMap',             label: 'Roadmaps',        route: '/app/roadmaps'        },
+    { icon: 'lucideHandshake',       label: 'Partnerships',    route: '/app/partnerships'    },
+    { icon: 'lucideCalendar',        label: 'Events',          route: '/app/events'          },
+    { icon: 'lucideClipboardList',   label: 'Registrations',   route: '/app/registrations', adminOnly: true },
   ];
+
+  protected get navItems(): NavItem[] {
+    const isAdmin = this.authService.hasRole('ADMIN');
+    return this.allNavItems.filter(item => !item.adminOnly || isAdmin);
+  }
 
   private readonly url = toSignal(
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)),
@@ -826,7 +832,7 @@ export class LayoutComponent {
   protected readonly currentPageTitle = computed(() => {
     this.url();
     const cleanUrl = this.router.url.split('?')[0];
-    return this.navItems.find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
+    return this.allNavItems.find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
   });
 
   protected readonly userDisplayName = computed(() => {

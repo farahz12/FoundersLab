@@ -26,6 +26,7 @@ import { ProjectsComponent } from './pages/projects/projects.component';
 import { RoadmapsComponent } from './pages/roadmaps/roadmaps.component';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
 import { MapComponent } from './shared/components/map/map.component'; // Add this import
+import { AdminRegistrationsComponent } from './pages/admin-registrations/admin-registrations.component';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 @NgModule({
@@ -49,6 +50,7 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     RoadmapsComponent,
     VerifyCertificateComponent,
     MapComponent, // Add MapComponent here
+    AdminRegistrationsComponent,
   ],
   imports: [
     BrowserModule,

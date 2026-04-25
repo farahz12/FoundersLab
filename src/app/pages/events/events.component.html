@@ -1319,7 +1319,13 @@
                   <p class="text-sm font-semibold" style="color:var(--text-primary);">Registration &amp; ticket</p>
 
                   @if (selectedEvent.status === 'PUBLIE' && !selectedRegistration) {
-                    <div class="mt-4 flex items-center gap-2">
+                    @if (selectedEvent.ticketPrice && selectedEvent.ticketPrice > 0) {
+                      <div class="mt-3 flex items-center gap-1.5 rounded-lg p-2" style="background:var(--badge-amber-bg);">
+                        <ng-icon name="lucideWallet" [size]="'13'" style="color:var(--badge-amber-text); flex-shrink:0;" />
+                        <p class="text-xs font-semibold" style="color:var(--badge-amber-text);">Paid event — {{ selectedEvent.ticketPrice }} TND/place</p>
+                      </div>
+                    }
+                    <div class="mt-3 flex items-center gap-2">
                       <label class="text-xs" style="color:var(--text-secondary); white-space:nowrap;">Places:</label>
                       <input
                         type="number" min="1" max="10"
@@ -1327,36 +1333,50 @@
                         class="form-input text-xs"
                         style="width:64px; padding:4px 8px; height:auto;" />
                       <button type="button" class="btn-primary-inline" (click)="registerForSelected()" [disabled]="processingSelectedAction">
-                        {{ processingSelectedAction ? 'Registering...' : 'Register' }}
+                        {{ processingSelectedAction ? 'Registering...' : (selectedEvent.ticketPrice && selectedEvent.ticketPrice > 0 ? 'Reserve & Pay' : 'Register') }}
                       </button>
                     </div>
                   }
 
                   @if (selectedRegistration) {
-                    <div class="mt-4 detail-stat-grid">
-                      <div>
-                        <span>Status</span>
-                        <strong>{{ selectedRegistration.status }}</strong>
+                    @if (selectedRegistration.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
+                      @if (selectedRegistration.paymentStatus === 'PENDING') {
+                        <div class="mt-4 rounded-xl p-3" style="background:#fefce8; border:1px solid #fbbf24;">
+                          <p class="text-xs font-semibold" style="color:#92400e;">Payment required</p>
+                          <p class="text-xs mt-1" style="color:#78350f;">Click "Pay now" to complete your registration. An admin will confirm your spot after payment.</p>
+                        </div>
+                      } @else {
+                        <div class="mt-4 rounded-xl p-3" style="background:#fefce8; border:1px solid #fbbf24;">
+                          <p class="text-xs font-semibold" style="color:#92400e;">Payment submitted — awaiting admin validation</p>
+                          <p class="text-xs mt-1" style="color:#78350f;">You will receive a confirmation email once your registration is approved.</p>
+                        </div>
+                      }
+                    } @else {
+                      <div class="mt-4 detail-stat-grid">
+                        <div>
+                          <span>Status</span>
+                          <strong>{{ selectedRegistration.status === 'INSCRIT' ? 'Confirmed' : selectedRegistration.status === 'LISTE_ATTENTE' ? 'Waitlist' : selectedRegistration.status }}</strong>
+                        </div>
+                        <div>
+                          <span>Ticket</span>
+                          <strong>{{ selectedTicket?.ticketNumber || selectedRegistration.ticketNumber || 'Pending' }}</strong>
+                        </div>
                       </div>
-                      <div>
-                        <span>Ticket</span>
-                        <strong>{{ selectedTicket?.ticketNumber || selectedRegistration.ticketNumber || 'Pending' }}</strong>
-                      </div>
-                    </div>
+                    }
                     <div class="ticket-actions-row mt-4">
-                      @if (selectedTicket?.paymentStatus === 'PENDING') {
+                      @if (selectedRegistration.paymentStatus === 'PENDING') {
                         <button type="button" class="btn-primary-inline" (click)="paySelectedTicket()" [disabled]="processingSelectedAction">
                           <ng-icon name="lucideWallet" [size]="'14'" />
-                          Pay now
+                          {{ processingSelectedAction ? 'Processing…' : 'Pay now' }}
                         </button>
                       }
-                      @if (selectedTicket) {
+                      @if (selectedTicket && selectedRegistration.status === 'INSCRIT') {
                         <button type="button" class="btn-secondary-inline" (click)="downloadSelectedTicket()" [disabled]="processingSelectedAction">
                           <ng-icon name="lucideDownload" [size]="'14'" />
                           Download ticket
                         </button>
                       }
-                      @if (selectedRegistration.status === 'INSCRIT' || selectedRegistration.status === 'LISTE_ATTENTE') {
+                      @if (selectedRegistration.status === 'INSCRIT' || selectedRegistration.status === 'LISTE_ATTENTE' || selectedRegistration.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
                         <button type="button" class="btn-danger-inline" (click)="cancelSelectedRegistration()" [disabled]="processingSelectedAction">
                           <ng-icon name="lucideX" [size]="'14'" />
                           Cancel

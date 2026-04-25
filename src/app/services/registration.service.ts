@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { EventRegistration } from '../models/registration';
+import { EventRegistration, RegistrationStatus } from '../models/registration';
 import { EVENT_API_BASE } from '../core/config/api.config';
 
 @Injectable({ providedIn: 'root' })
@@ -10,8 +10,8 @@ export class RegistrationService {
 
   constructor(private readonly http: HttpClient) {}
 
-  register(eventId: number): Observable<EventRegistration> {
-    return this.http.post<EventRegistration>(`${this.api}/${eventId}/register`, {});
+  register(eventId: number, numberOfPlaces = 1): Observable<EventRegistration> {
+    return this.http.post<EventRegistration>(`${this.api}/${eventId}/register`, { numberOfPlaces });
   }
 
   cancel(eventId: number): Observable<EventRegistration> {
@@ -28,5 +28,20 @@ export class RegistrationService {
 
   checkIn(registrationId: number): Observable<EventRegistration> {
     return this.http.patch<EventRegistration>(`${this.api}/registrations/${registrationId}/checkin`, {});
+  }
+
+  approve(registrationId: number): Observable<EventRegistration> {
+    return this.http.patch<EventRegistration>(`${this.api}/registrations/${registrationId}/approve`, {});
+  }
+
+  reject(registrationId: number, reason = ''): Observable<EventRegistration> {
+    return this.http.patch<EventRegistration>(`${this.api}/registrations/${registrationId}/reject`, { reason });
+  }
+
+  getAllRegistrations(eventId?: number, status?: RegistrationStatus): Observable<EventRegistration[]> {
+    let params = new HttpParams();
+    if (eventId != null) params = params.set('eventId', String(eventId));
+    if (status != null) params = params.set('status', status);
+    return this.http.get<EventRegistration[]>(`${this.api}/registrations`, { params });
   }
 }

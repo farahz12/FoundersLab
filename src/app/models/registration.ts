@@ -1,4 +1,4 @@
-export type RegistrationStatus = 'INSCRIT' | 'LISTE_ATTENTE' | 'ANNULE' | 'PRESENT';
+export type RegistrationStatus = 'INSCRIT' | 'LISTE_ATTENTE' | 'ANNULE' | 'PRESENT' | 'PAIEMENT_EN_ATTENTE_VALIDATION';
 export type PaymentStatus = 'FREE' | 'PENDING' | 'PAID' | 'FAILED';
 
 export interface EventRegistration {

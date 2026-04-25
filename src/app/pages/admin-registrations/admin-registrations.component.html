@@ -1,0 +1,223 @@
+<div class="space-y-5">
+
+  <!-- ── Header ── -->
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 class="text-base font-bold" style="color:var(--text-primary);">Registration Management</h2>
+      <p class="text-xs mt-0.5" style="color:var(--text-muted);">
+        Approve or reject payment registrations, check in attendees.
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="loadAll()"
+      [disabled]="loading"
+      class="flex items-center gap-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80"
+      style="background:var(--surface-subtle); border:1px solid var(--border); color:var(--text-body); padding:7px 14px; font-family:var(--font-sans);">
+      <ng-icon name="lucideRefreshCw" [size]="'13'" />
+      Refresh
+    </button>
+  </div>
+
+  <!-- ── Flash messages ── -->
+  @if (successMessage) {
+    <div class="flex items-center gap-2 rounded-xl p-3" style="background:var(--badge-green-bg); border:1px solid var(--badge-green-text);">
+      <ng-icon name="lucideCheckCircle" [size]="'15'" style="color:var(--badge-green-text); flex-shrink:0;" />
+      <p class="text-xs font-medium" style="color:var(--badge-green-text);">{{ successMessage }}</p>
+    </div>
+  }
+  @if (errorMessage) {
+    <div class="flex items-center gap-2 rounded-xl p-3" style="background:var(--badge-red-bg); border:1px solid var(--badge-red-text);">
+      <ng-icon name="lucideXCircle" [size]="'15'" style="color:var(--badge-red-text); flex-shrink:0;" />
+      <p class="text-xs font-medium" style="color:var(--badge-red-text);">{{ errorMessage }}</p>
+    </div>
+  }
+
+  <!-- ── Filter tabs ── -->
+  <div class="flex gap-1 flex-wrap">
+    @for (tab of filterTabs; track tab.id) {
+      <button
+        type="button"
+        (click)="filterTab = tab.id"
+        class="flex items-center gap-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+        style="padding:6px 14px; border:none; font-family:var(--font-sans);"
+        [style.background]="filterTab === tab.id ? 'linear-gradient(135deg,#1C4FC3,#1D1384)' : 'var(--surface-subtle)'"
+        [style.color]="filterTab === tab.id ? '#fff' : 'var(--text-secondary)'">
+        {{ tab.label }}
+        @if (tab.id === 'pending' && pendingCount > 0) {
+          <span class="rounded-full px-1.5 py-0.5 text-xs font-bold"
+            [style.background]="filterTab === 'pending' ? 'rgba(255,255,255,0.25)' : 'var(--badge-amber-bg)'"
+            [style.color]="filterTab === 'pending' ? '#fff' : 'var(--badge-amber-text)'">
+            {{ pendingCount }}
+          </span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- ── Table ── -->
+  <div class="rounded-2xl overflow-hidden border" style="border-color:var(--border); background:var(--surface);">
+
+    @if (loading) {
+      <div class="flex items-center justify-center gap-2 p-10" style="color:var(--text-muted);">
+        <ng-icon name="lucideClock3" [size]="'18'" />
+        <span class="text-sm">Loading registrations…</span>
+      </div>
+    } @else if (filteredRegistrations.length === 0) {
+      <div class="flex flex-col items-center gap-2 p-10" style="color:var(--text-muted);">
+        <ng-icon name="lucideUsers" [size]="'28'" />
+        <p class="text-sm">No registrations found.</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full" style="border-collapse:collapse; min-width:720px;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border); background:var(--surface-subtle);">
+              <th class="text-left text-xs font-semibold px-4 py-3" style="color:var(--text-secondary);">User</th>
+              <th class="text-left text-xs font-semibold px-4 py-3" style="color:var(--text-secondary);">Event</th>
+              <th class="text-center text-xs font-semibold px-3 py-3" style="color:var(--text-secondary);">Places</th>
+              <th class="text-left text-xs font-semibold px-3 py-3" style="color:var(--text-secondary);">Status</th>
+              <th class="text-left text-xs font-semibold px-3 py-3" style="color:var(--text-secondary);">Payment</th>
+              <th class="text-left text-xs font-semibold px-3 py-3" style="color:var(--text-secondary);">Date</th>
+              <th class="text-right text-xs font-semibold px-4 py-3" style="color:var(--text-secondary);">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (reg of filteredRegistrations; track reg.id) {
+              <tr style="border-bottom:1px solid var(--border-subtle);">
+                <!-- User -->
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="flex items-center justify-center rounded-full flex-shrink-0"
+                      style="width:32px; height:32px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:11px; font-weight:700;">
+                      {{ (reg.userName || reg.userId.toString()).charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold" style="color:var(--text-primary);">
+                        {{ reg.userName || ('User #' + reg.userId) }}
+                      </p>
+                      <p class="text-xs" style="color:var(--text-muted);">#{{ reg.userId }}</p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Event -->
+                <td class="px-4 py-3">
+                  <p class="text-xs font-medium" style="color:var(--text-primary); max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    {{ reg.eventTitle || ('Event #' + reg.eventId) }}
+                  </p>
+                </td>
+
+                <!-- Places -->
+                <td class="px-3 py-3 text-center">
+                  <span class="text-xs font-semibold" style="color:var(--text-primary);">{{ reg.numberOfPlaces }}</span>
+                </td>
+
+                <!-- Status badge -->
+                <td class="px-3 py-3">
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                    [style.background]="statusBg(reg.status)"
+                    [style.color]="statusColor(reg.status)">
+                    {{ statusLabel(reg.status) }}
+                  </span>
+                </td>
+
+                <!-- Payment -->
+                <td class="px-3 py-3">
+                  <span class="text-xs" style="color:var(--text-secondary);">{{ paymentLabel(reg.paymentStatus) }}</span>
+                </td>
+
+                <!-- Date -->
+                <td class="px-3 py-3">
+                  <span class="text-xs" style="color:var(--text-muted);">{{ formatDate(reg.registeredAt) }}</span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-4 py-3">
+                  <div class="flex items-center justify-end gap-2">
+                    @if (reg.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
+                      <button
+                        type="button"
+                        (click)="approve(reg.id)"
+                        [disabled]="processingId === reg.id"
+                        class="flex items-center gap-1 rounded-lg text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80"
+                        style="background:var(--badge-green-bg); color:var(--badge-green-text); border:none; padding:5px 10px; font-family:var(--font-sans);">
+                        <ng-icon name="lucideCheck" [size]="'12'" />
+                        {{ processingId === reg.id ? '…' : 'Approve' }}
+                      </button>
+                      <button
+                        type="button"
+                        (click)="openRejectDialog(reg.id)"
+                        [disabled]="processingId === reg.id"
+                        class="flex items-center gap-1 rounded-lg text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80"
+                        style="background:var(--badge-red-bg); color:var(--badge-red-text); border:none; padding:5px 10px; font-family:var(--font-sans);">
+                        <ng-icon name="lucideX" [size]="'12'" />
+                        Reject
+                      </button>
+                    }
+                    @if (reg.status === 'INSCRIT') {
+                      <button
+                        type="button"
+                        (click)="checkIn(reg.id)"
+                        [disabled]="processingId === reg.id"
+                        class="flex items-center gap-1 rounded-lg text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80"
+                        style="background:var(--badge-purple-bg); color:var(--badge-purple-text); border:none; padding:5px 10px; font-family:var(--font-sans);">
+                        <ng-icon name="lucideUserCheck" [size]="'12'" />
+                        {{ processingId === reg.id ? '…' : 'Check in' }}
+                      </button>
+                    }
+                    @if (reg.status === 'PRESENT') {
+                      <span class="flex items-center gap-1 text-xs font-semibold" style="color:var(--badge-green-text);">
+                        <ng-icon name="lucideCheckCircle" [size]="'13'" />
+                        Attended
+                      </span>
+                    }
+                    @if (reg.status === 'ANNULE' || reg.status === 'LISTE_ATTENTE') {
+                      <span class="text-xs" style="color:var(--text-muted);">—</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- ── Reject reason dialog ── -->
+@if (rejectDialogOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" (click)="cancelReject()"></div>
+    <div class="relative rounded-2xl p-6 space-y-4"
+      style="background:var(--surface); width:min(420px, calc(100vw - 24px)); box-shadow:0 24px 64px rgba(0,0,0,0.28); z-index:1;">
+      <div>
+        <h3 class="text-sm font-bold" style="color:var(--text-primary);">Reject registration</h3>
+        <p class="text-xs mt-1" style="color:var(--text-muted);">Optionally provide a reason. The participant will be notified by email.</p>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Reason (optional)</label>
+        <textarea
+          [(ngModel)]="rejectReason"
+          rows="3"
+          class="w-full text-sm rounded-lg border focus:outline-none"
+          style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;"
+          placeholder="E.g. Payment proof not provided…"></textarea>
+      </div>
+      <div class="flex items-center justify-end gap-3">
+        <button type="button" (click)="cancelReject()"
+          class="text-sm font-semibold rounded-xl cursor-pointer"
+          style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:8px 20px; font-family:var(--font-sans);">
+          Cancel
+        </button>
+        <button type="button" (click)="confirmReject()"
+          class="text-sm font-semibold rounded-xl cursor-pointer transition-opacity hover:opacity-90"
+          style="background:#dc2626; color:#fff; border:none; padding:8px 20px; font-family:var(--font-sans);">
+          Confirm rejection
+        </button>
+      </div>
+    </div>
+  </div>
+}

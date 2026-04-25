@@ -762,15 +762,23 @@ protected predictSelectedEvent(): void {
     const eventId = this.selectedEvent.id;
     this.processingSelectedAction = true;
     this.clearMessages();
-    this.registrationService.register(eventId).subscribe({
+    this.registrationService.register(eventId, this.numberOfPlacesToRegister).subscribe({
       next: (registration) => {
         this.selectedRegistration = registration;
         this.processingSelectedAction = false;
-        this.successMessage = registration.status === 'LISTE_ATTENTE' ? 'Added to waitlist.' : 'Registration completed.';
+        if (registration.status === 'LISTE_ATTENTE') {
+          this.successMessage = 'Added to waitlist.';
+        } else if (registration.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
+          this.successMessage = 'Your registration is pending payment validation by an admin.';
+        } else {
+          this.successMessage = 'You are registered!';
+        }
         this.cdr.markForCheck();
         this.loadMyRegistrations(eventId);
         this.loadEvents(eventId);
-        if (registration.status === 'INSCRIT') this.loadSelectedTicket(eventId);
+        if (registration.status === 'INSCRIT' || registration.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
+          this.loadSelectedTicket(eventId);
+        }
       },
       error: (err) => { this.processingSelectedAction = false; this.errorMessage = err?.error?.message || 'Failed to register.'; this.cdr.markForCheck(); },
     });
@@ -796,8 +804,15 @@ protected predictSelectedEvent(): void {
     if (!this.selectedEvent) return;
     this.processingSelectedAction = true;
     this.clearMessages();
-    this.ticketService.payForTicket(this.selectedEvent.id).subscribe({
-      next: (ticket) => { this.selectedTicket = ticket; this.processingSelectedAction = false; this.successMessage = `Ticket ${ticket.ticketNumber} marked as paid.`; this.cdr.markForCheck(); },
+    const eventId = this.selectedEvent.id;
+    this.ticketService.payForTicket(eventId).subscribe({
+      next: (ticket) => {
+        this.selectedTicket = ticket;
+        this.processingSelectedAction = false;
+        this.successMessage = 'Payment submitted. An admin will validate your registration shortly.';
+        this.cdr.markForCheck();
+        this.loadMyRegistrations(eventId);
+      },
       error: () => { this.processingSelectedAction = false; this.errorMessage = 'Failed to process payment.'; this.cdr.markForCheck(); },
     });
   }
@@ -1271,7 +1286,9 @@ protected changeEventStatus(event: Event, status: EventStatus): void {
         this.cdr.markForCheck();
         if (selectEventId) {
           this.selectedRegistration = this.myRegistrations.find((r) => r.eventId === selectEventId) || null;
-          if (this.selectedRegistration?.status === 'INSCRIT' || this.selectedRegistration?.status === 'PRESENT') {
+          if (this.selectedRegistration?.status === 'INSCRIT'
+              || this.selectedRegistration?.status === 'PRESENT'
+              || this.selectedRegistration?.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
             this.loadSelectedTicket(selectEventId);
           }
         }
@@ -1297,7 +1314,9 @@ protected changeEventStatus(event: Event, status: EventStatus): void {
         this.program = [...program].sort((l, r) => l.orderIndex - r.orderIndex);
         this.registrations = registrations;
         this.cdr.markForCheck();
-        if (this.selectedRegistration?.status === 'INSCRIT' || this.selectedRegistration?.status === 'PRESENT') {
+        if (this.selectedRegistration?.status === 'INSCRIT'
+            || this.selectedRegistration?.status === 'PRESENT'
+            || this.selectedRegistration?.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
           this.loadSelectedTicket(eventId);
         }
       },
