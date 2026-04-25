@@ -226,6 +226,11 @@
                     <ng-icon name="lucideMapPin" [size]="'12'" aria-hidden="true" /> {{ event.location || event.locationType }}
                   }
                 </span>
+                @if (event.latitude && event.longitude && isEventUpcoming(event)) {
+                  <span class="pub-event-card__meta-item" style="color:#6366f1; cursor:pointer;" title="See weather in event details">
+                    <ng-icon name="lucideCloud" [size]="'12'" aria-hidden="true" /> Weather available
+                  </span>
+                }
               </div>
 
               <!-- Capacity bar -->
@@ -412,6 +417,86 @@
                 </div>
               }
             }
+            <!-- ── Weather Forecast Preview ── -->
+            @if (loadingFormWeather) {
+              <div class="rounded-xl border p-4 flex items-center gap-3" style="border-color:var(--border); background:var(--surface-subtle);">
+                <ng-icon name="lucideCloud" [size]="'18'" style="color:var(--text-muted); flex-shrink:0; animation:spin 1.5s linear infinite;" />
+                <p class="text-xs" style="color:var(--text-muted);">Fetching weather forecast…</p>
+              </div>
+            }
+            @if (!loadingFormWeather && formWeather) {
+              @if (formWeather.available) {
+                <div class="rounded-xl border overflow-hidden" [style.border-color]="weatherConditionStyle(formWeather.condition).border">
+                  <!-- Header row -->
+                  <div class="flex items-center justify-between px-4 py-3"
+                    [style.background]="weatherConditionStyle(formWeather.condition).bg">
+                    <div class="flex items-center gap-2">
+                      <ng-icon name="lucideCloud" [size]="'14'"
+                        [style.color]="weatherConditionStyle(formWeather.condition).text" />
+                      <span class="text-xs font-semibold"
+                        [style.color]="weatherConditionStyle(formWeather.condition).text">
+                        Weather forecast{{ formWeather.location ? ' — ' + formWeather.location : '' }}
+                      </span>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                      [style.background]="weatherConditionStyle(formWeather.condition).border"
+                      [style.color]="weatherConditionStyle(formWeather.condition).text">
+                      {{ formWeather.condition }}
+                    </span>
+                  </div>
+                  <!-- Main content -->
+                  <div class="px-4 py-3 flex items-center gap-4" style="background:var(--surface);">
+                    @if (formWeather.iconUrl) {
+                      <img [src]="formWeather.iconUrl" [alt]="formWeather.description" width="52" height="52"
+                        style="flex-shrink:0; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.15));" />
+                    }
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold" style="color:var(--text-primary); letter-spacing:-0.04em;">
+                          {{ formWeather.temperature }}°C
+                        </span>
+                        <span class="text-xs" style="color:var(--text-secondary);">
+                          feels like {{ formWeather.feelsLike }}°C
+                        </span>
+                      </div>
+                      <p class="text-xs font-medium mb-3" style="color:var(--text-secondary);">
+                        {{ formWeather.description }}
+                      </p>
+                      <div class="flex flex-wrap gap-3">
+                        <div class="flex items-center gap-1">
+                          <ng-icon name="lucideDroplets" [size]="'12'" style="color:#0ea5e9;" />
+                          <span class="text-xs" style="color:var(--text-secondary);">{{ formWeather.humidity }}% humidity</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <ng-icon name="lucideWind" [size]="'12'" style="color:#64748b;" />
+                          <span class="text-xs" style="color:var(--text-secondary);">{{ formWeather.windSpeedKmh }} km/h</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <ng-icon name="lucideCloudRain" [size]="'12'" style="color:#6366f1;" />
+                          <span class="text-xs" style="color:var(--text-secondary);">{{ formWeather.rainProbability }}% rain</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Condition label footer -->
+                  <div class="px-4 py-2.5 border-t flex items-center gap-2"
+                    [style.border-color]="weatherConditionStyle(formWeather.condition).border"
+                    [style.background]="weatherConditionStyle(formWeather.condition).bg">
+                    <ng-icon [name]="weatherConditionIcon(formWeather.condition)" [size]="'13'"
+                      [style.color]="weatherConditionStyle(formWeather.condition).text" />
+                    <p class="text-xs font-medium" [style.color]="weatherConditionStyle(formWeather.condition).text">
+                      {{ formWeather.conditionLabel }}
+                    </p>
+                  </div>
+                </div>
+              } @else {
+                <div class="rounded-xl border p-3 flex items-center gap-2" style="border-color:var(--border); background:var(--surface-subtle);">
+                  <ng-icon name="lucideCloud" [size]="'14'" style="color:var(--text-muted); flex-shrink:0;" />
+                  <p class="text-xs" style="color:var(--text-muted);">{{ formWeather.reason }}</p>
+                </div>
+              }
+            }
+
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Capacity</label>
@@ -1113,6 +1198,22 @@
                 class="text-xs font-semibold rounded-lg cursor-pointer"
                 style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:6px 14px; font-family:var(--font-sans);">Edit</button>
             }
+            @if (!canCreate() && selectedEvent.status === 'PUBLIE' && authService.isLoggedIn()) {
+              @if (!selectedRegistration) {
+                <button type="button" (click)="registerForSelected()" [disabled]="processingSelectedAction"
+                  class="text-xs font-semibold rounded-lg cursor-pointer transition-opacity hover:opacity-90"
+                  style="background:#fff; color:#1C4FC3; border:none; padding:6px 16px; font-family:var(--font-sans);">
+                  {{ processingSelectedAction ? 'Registering…' : (selectedEvent.ticketPrice && selectedEvent.ticketPrice > 0 ? 'Reserve & Pay' : 'Register now') }}
+                </button>
+              }
+              @if (selectedRegistration && selectedRegistration.paymentStatus === 'PENDING') {
+                <button type="button" (click)="paySelectedTicket()" [disabled]="processingSelectedAction"
+                  class="text-xs font-semibold rounded-lg cursor-pointer transition-opacity hover:opacity-90"
+                  style="background:#fff; color:#b45309; border:none; padding:6px 16px; font-family:var(--font-sans);">
+                  {{ processingSelectedAction ? 'Processing…' : 'Pay now' }}
+                </button>
+              }
+            }
           </div>
         </div>
 
@@ -1318,6 +1419,19 @@
                 <div class="rounded-2xl border p-4" style="border-color:var(--border); background:var(--surface-subtle);">
                   <p class="text-sm font-semibold" style="color:var(--text-primary);">Registration &amp; ticket</p>
 
+                  @if (!canCreate() && successMessage) {
+                    <div class="mt-2 flex items-center gap-1.5 rounded-lg px-3 py-2" style="background:var(--badge-green-bg);">
+                      <ng-icon name="lucideCheck" [size]="'13'" style="color:var(--badge-green-text); flex-shrink:0;" />
+                      <p class="text-xs font-medium" style="color:var(--badge-green-text);">{{ successMessage }}</p>
+                    </div>
+                  }
+                  @if (!canCreate() && errorMessage) {
+                    <div class="mt-2 flex items-center gap-1.5 rounded-lg px-3 py-2" style="background:var(--badge-red-bg);">
+                      <ng-icon name="lucideX" [size]="'13'" style="color:var(--badge-red-text); flex-shrink:0;" />
+                      <p class="text-xs font-medium" style="color:var(--badge-red-text);">{{ errorMessage }}</p>
+                    </div>
+                  }
+
                   @if (selectedEvent.status === 'PUBLIE' && !selectedRegistration) {
                     @if (selectedEvent.ticketPrice && selectedEvent.ticketPrice > 0) {
                       <div class="mt-3 flex items-center gap-1.5 rounded-lg p-2" style="background:var(--badge-amber-bg);">
@@ -1385,6 +1499,95 @@
                     </div>
                   }
                 </div>
+
+                <!-- ── Weather card in event sidebar ── -->
+                @if (loadingEventWeather) {
+                  <div class="rounded-2xl border p-4 flex items-center gap-3" style="border-color:var(--border); background:var(--surface-subtle);">
+                    <ng-icon name="lucideCloud" [size]="'16'" style="color:var(--text-muted); flex-shrink:0;" />
+                    <p class="text-xs" style="color:var(--text-muted);">Loading weather…</p>
+                  </div>
+                }
+                @if (!loadingEventWeather && selectedEventWeather) {
+                  @if (selectedEventWeather.available) {
+                    <div class="rounded-2xl border overflow-hidden"
+                      [style.border-color]="weatherConditionStyle(selectedEventWeather.condition).border">
+                      <!-- Card header -->
+                      <div class="flex items-center justify-between px-4 py-3"
+                        [style.background]="weatherConditionStyle(selectedEventWeather.condition).bg">
+                        <div class="flex items-center gap-1.5">
+                          <ng-icon name="lucideCloud" [size]="'13'"
+                            [style.color]="weatherConditionStyle(selectedEventWeather.condition).text" />
+                          <span class="text-xs font-semibold"
+                            [style.color]="weatherConditionStyle(selectedEventWeather.condition).text">
+                            Weather on event day
+                          </span>
+                        </div>
+                        @if (selectedEventWeather.location) {
+                          <span class="text-xs" style="color:var(--text-muted);">{{ selectedEventWeather.location }}</span>
+                        }
+                      </div>
+                      <!-- Temperature + icon -->
+                      <div class="px-4 py-3 flex items-center gap-3" style="background:var(--surface);">
+                        @if (selectedEventWeather.iconUrl) {
+                          <img [src]="selectedEventWeather.iconUrl" [alt]="selectedEventWeather.description"
+                            width="48" height="48"
+                            style="flex-shrink:0; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.12));" />
+                        }
+                        <div class="flex-1">
+                          <div class="flex items-baseline gap-1.5">
+                            <span class="text-xl font-bold" style="color:var(--text-primary); letter-spacing:-0.03em;">
+                              {{ selectedEventWeather.temperature }}°C
+                            </span>
+                            <span class="text-xs" style="color:var(--text-secondary);">
+                              / {{ selectedEventWeather.feelsLike }}°C felt
+                            </span>
+                          </div>
+                          <p class="text-xs mt-0.5 font-medium" style="color:var(--text-secondary);">
+                            {{ selectedEventWeather.description }}
+                          </p>
+                        </div>
+                      </div>
+                      <!-- Metrics row -->
+                      <div class="grid grid-cols-3 border-t" style="border-color:var(--border-subtle);">
+                        <div class="flex flex-col items-center gap-1 py-3 px-2" style="border-right:1px solid var(--border-subtle);">
+                          <ng-icon name="lucideDroplets" [size]="'14'" style="color:#0ea5e9;" />
+                          <span class="text-xs font-semibold" style="color:var(--text-primary);">{{ selectedEventWeather.humidity }}%</span>
+                          <span class="text-xs" style="color:var(--text-muted); font-size:10px;">Humidity</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 py-3 px-2" style="border-right:1px solid var(--border-subtle);">
+                          <ng-icon name="lucideWind" [size]="'14'" style="color:#64748b;" />
+                          <span class="text-xs font-semibold" style="color:var(--text-primary);">{{ selectedEventWeather.windSpeedKmh }}<span class="font-normal text-xs" style="color:var(--text-muted);"> km/h</span></span>
+                          <span class="text-xs" style="color:var(--text-muted); font-size:10px;">Wind</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 py-3 px-2">
+                          <ng-icon name="lucideCloudRain" [size]="'14'" style="color:#6366f1;" />
+                          <span class="text-xs font-semibold" style="color:var(--text-primary);">{{ selectedEventWeather.rainProbability }}%</span>
+                          <span class="text-xs" style="color:var(--text-muted); font-size:10px;">Rain</span>
+                        </div>
+                      </div>
+                      <!-- Condition label -->
+                      <div class="px-4 py-2.5 flex items-start gap-2 border-t"
+                        [style.border-color]="weatherConditionStyle(selectedEventWeather.condition).border"
+                        [style.background]="weatherConditionStyle(selectedEventWeather.condition).bg">
+                        <ng-icon [name]="weatherConditionIcon(selectedEventWeather.condition)" [size]="'13'"
+                          [style.color]="weatherConditionStyle(selectedEventWeather.condition).text"
+                          style="flex-shrink:0; margin-top:1px;" />
+                        <p class="text-xs font-medium leading-tight"
+                          [style.color]="weatherConditionStyle(selectedEventWeather.condition).text">
+                          {{ selectedEventWeather.conditionLabel }}
+                        </p>
+                      </div>
+                    </div>
+                  } @else if (selectedEventWeather.reason !== 'This event has already passed') {
+                    <div class="rounded-2xl border p-4 flex items-start gap-2.5" style="border-color:var(--border); background:var(--surface-subtle);">
+                      <ng-icon name="lucideCloud" [size]="'15'" style="color:var(--text-muted); flex-shrink:0; margin-top:1px;" />
+                      <div>
+                        <p class="text-xs font-semibold" style="color:var(--text-secondary);">Weather forecast</p>
+                        <p class="text-xs mt-0.5" style="color:var(--text-muted);">{{ selectedEventWeather.reason }}</p>
+                      </div>
+                    </div>
+                  }
+                }
 
                 @if (canCreate()) {
                   <div class="rounded-2xl border p-4" style="border-color:var(--border); background:var(--surface-subtle);">
@@ -1623,12 +1826,38 @@
                       @for (registration of registrations; track registration.id) {
                         <tr>
                           <td>{{ registration.userName || registration.userId }}</td>
-                          <td>{{ registration.status }}</td>
+                          <td>
+                            @switch (registration.status) {
+                              @case ('INSCRIT') {
+                                <span class="event-chip-inline" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Confirmed</span>
+                              }
+                              @case ('PAIEMENT_EN_ATTENTE_VALIDATION') {
+                                <span class="event-chip-inline" style="background:#fef3c7; color:#b45309;">Awaiting approval</span>
+                              }
+                              @case ('LISTE_ATTENTE') {
+                                <span class="event-chip-inline" style="background:var(--badge-blue-bg); color:var(--badge-blue-text);">Waitlist</span>
+                              }
+                              @case ('ANNULE') {
+                                <span class="event-chip-inline" style="background:var(--badge-red-bg); color:var(--badge-red-text);">Cancelled</span>
+                              }
+                              @case ('PRESENT') {
+                                <span class="event-chip-inline" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Present</span>
+                              }
+                              @default {
+                                <span class="event-chip-inline">{{ registration.status }}</span>
+                              }
+                            }
+                          </td>
                           <td>{{ registration.numberOfPlaces || 1 }}</td>
                           <td>{{ formatDateTime(registration.registeredAt) }}</td>
                           <td>{{ registration.ticketNumber || 'Pending' }}</td>
                           <td>
-                            @if (registration.status === 'INSCRIT' && !registration.attended) {
+                            @if (registration.status === 'PAIEMENT_EN_ATTENTE_VALIDATION') {
+                              <div style="display:flex; gap:6px; align-items:center;">
+                                <button type="button" class="btn-primary-inline" (click)="approveRegistration(registration)" title="Approve payment and confirm registration">Approve</button>
+                                <button type="button" class="btn-danger-inline" (click)="rejectRegistration(registration)" title="Reject and cancel registration">Reject</button>
+                              </div>
+                            } @else if (registration.status === 'INSCRIT' && !registration.attended) {
                               <button type="button" class="btn-secondary-inline" (click)="checkInRegistration(registration)">Check in</button>
                             } @else if (registration.attended) {
                               <span class="event-chip-inline" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Checked in</span>

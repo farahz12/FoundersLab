@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -6,7 +6,10 @@ import {
   lucideCheck,
   lucideCircleDashed,
   lucideClock3,
+  lucideCloud,
+  lucideCloudRain,
   lucideDownload,
+  lucideDroplets,
   lucideEdit,
   lucideExternalLink,
   lucideGlobe,
@@ -14,6 +17,8 @@ import {
   lucidePlus,
   lucideSearch,
   lucideSparkles,
+  lucideSun,
+  lucideThermometer,
   lucideTicket,
   lucideTrash2,
   lucideUpload,
@@ -21,10 +26,14 @@ import {
   lucideUsers,
   lucideVideo,
   lucideWallet,
+  lucideWind,
   lucideX,
   lucideMessageSquare,
 } from '@ng-icons/lucide';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { WeatherData } from '../../models/weather.model';
+import { WeatherService } from '../../services/weather.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Event, EventRequest, EventStatus, EventType, LocationType } from '../../models/event';
 import { EventProgram, EventProgramRequest, ProgramSlotType } from '../../models/program';
@@ -73,7 +82,10 @@ interface FeedbackEligibility {
       lucideCheck,
       lucideCircleDashed,
       lucideClock3,
+      lucideCloud,
+      lucideCloudRain,
       lucideDownload,
+      lucideDroplets,
       lucideEdit,
       lucideExternalLink,
       lucideGlobe,
@@ -81,6 +93,8 @@ interface FeedbackEligibility {
       lucidePlus,
       lucideSearch,
       lucideSparkles,
+      lucideSun,
+      lucideThermometer,
       lucideTicket,
       lucideTrash2,
       lucideUpload,
@@ -88,6 +102,7 @@ interface FeedbackEligibility {
       lucideUsers,
       lucideVideo,
       lucideWallet,
+      lucideWind,
       lucideX,
       lucideMessageSquare,
     }),
@@ -95,7 +110,7 @@ interface FeedbackEligibility {
   templateUrl: './events.component.html',
   styleUrl: './events.component.css',
 })
-export class EventsComponent implements OnInit {
+export class EventsComponent implements OnInit, OnDestroy {
   protected readonly workspaceTabs: Array<{ id: WorkspaceTab; label: string }> = [
     { id: 'directory', label: 'Directory' },
     { id: 'calendar', label: 'Calendar' },
@@ -210,6 +225,14 @@ export class EventsComponent implements OnInit {
   protected submittingFeedback = false;
   protected loadingFeedback = false;
 
+  // Weather state
+  protected formWeather: WeatherData | null = null;
+  protected loadingFormWeather = false;
+  protected selectedEventWeather: WeatherData | null = null;
+  protected loadingEventWeather = false;
+  private weatherSub: Subscription | null = null;
+  private weatherTimer: ReturnType<typeof setTimeout> | null = null;
+
   protected readonly eventForm: FormGroup;
   protected readonly speakerForm: FormGroup;
   protected readonly slotForm: FormGroup;
@@ -225,6 +248,7 @@ export class EventsComponent implements OnInit {
     private readonly programService: ProgramService,
     private readonly predictionService: PredictionService,
     private readonly feedbackService: FeedbackService,
+    private readonly weatherService: WeatherService,
   ) {
     this.eventForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -275,6 +299,12 @@ export class EventsComponent implements OnInit {
     if (this.isAdmin()) {
       this.loadPending();
     }
+    this.watchFormWeather();
+  }
+
+  ngOnDestroy(): void {
+    this.weatherSub?.unsubscribe();
+    if (this.weatherTimer) clearTimeout(this.weatherTimer);
   }
 
   protected get targetSectors(): string[] {
@@ -450,6 +480,88 @@ export class EventsComponent implements OnInit {
     return this.authService.hasRole('ADMIN');
   }
 
+  // ── Weather helpers ──────────────────────────────────────────────────────
+
+  protected weatherConditionStyle(condition?: string): { bg: string; text: string; border: string } {
+    switch (condition) {
+      case 'EXCELLENT': return { bg: '#f0fdf4', text: '#15803d', border: '#86efac' };
+      case 'GOOD':      return { bg: '#eff6ff', text: '#1d4ed8', border: '#93c5fd' };
+      case 'FAIR':      return { bg: '#fffbeb', text: '#b45309', border: '#fcd34d' };
+      case 'POOR':      return { bg: '#fef2f2', text: '#b91c1c', border: '#fca5a5' };
+      default:          return { bg: 'var(--surface-subtle)', text: 'var(--text-secondary)', border: 'var(--border)' };
+    }
+  }
+
+  protected weatherConditionIcon(condition?: string): string {
+    switch (condition) {
+      case 'EXCELLENT': return 'lucideSun';
+      case 'GOOD':      return 'lucideCloud';
+      case 'FAIR':      return 'lucideCloudRain';
+      case 'POOR':      return 'lucideCloudRain';
+      default:          return 'lucideCloud';
+    }
+  }
+
+  protected isEventUpcoming(event: Event): boolean {
+    if (!event.startDate) return false;
+    const now = new Date();
+    const start = new Date(event.startDate);
+    const diffHours = (start.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return diffHours > -1 && diffHours < 121;
+  }
+
+  private watchFormWeather(): void {
+    this.weatherSub = this.eventForm.valueChanges.pipe(
+      debounceTime(700),
+      distinctUntilChanged((a, b) =>
+        a.startDate === b.startDate &&
+        a.latitude  === b.latitude  &&
+        a.longitude === b.longitude
+      )
+    ).subscribe((values) => {
+      const lat = values.latitude;
+      const lon = values.longitude;
+      const date = values.startDate;
+      if (lat != null && lon != null && date) {
+        this.fetchFormWeather(lat, lon, date);
+      } else {
+        this.formWeather = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private fetchFormWeather(lat: number, lon: number, date: string): void {
+    const isoDate = date.includes('T') ? date : date + 'T00:00:00';
+    this.loadingFormWeather = true;
+    this.formWeather = null;
+    this.cdr.markForCheck();
+    this.weatherService.getWeather(lat, lon, isoDate).subscribe({
+      next: (w) => { this.formWeather = w; this.loadingFormWeather = false; this.cdr.markForCheck(); },
+      error: () => { this.loadingFormWeather = false; this.cdr.markForCheck(); },
+    });
+  }
+
+  private loadEventWeather(event: Event): void {
+    if (!event.latitude || !event.longitude || !event.startDate) {
+      this.selectedEventWeather = null;
+      return;
+    }
+    if (!this.isEventUpcoming(event)) {
+      this.selectedEventWeather = { available: false, reason: 'This event has already passed' };
+      return;
+    }
+    this.loadingEventWeather = true;
+    this.selectedEventWeather = null;
+    this.cdr.markForCheck();
+    this.weatherService.getWeather(event.latitude, event.longitude, event.startDate).subscribe({
+      next: (w) => { this.selectedEventWeather = w; this.loadingEventWeather = false; this.cdr.markForCheck(); },
+      error: () => { this.loadingEventWeather = false; this.cdr.markForCheck(); },
+    });
+  }
+
+  // ── Event selection ───────────────────────────────────────────────────────
+
   protected selectEvent(event: Event): void {
     this.clearMessages();
     this.detailTab = 'overview';
@@ -471,6 +583,7 @@ export class EventsComponent implements OnInit {
         this.feedbackComment = '';
         this.feedbackError = '';
         this.loadEventWorkspace(selected.id);
+        this.loadEventWeather(selected);
         if (selected.status === 'TERMINE' || selected.status === 'PUBLIE') {
           this.loadFeedback(selected.id);
         }
@@ -526,6 +639,8 @@ export class EventsComponent implements OnInit {
     this.showEventForm = false;
     this.editingEvent = null;
     this.generatingDescription = false;
+    this.formWeather = null;
+    this.loadingFormWeather = false;
   }
 
   protected submitEventForm(): void {
@@ -595,36 +710,35 @@ protected predictEvent(): void {
   this.predictingEvent = true;
   this.predictionError = '';
   this.fullAnalysis = null;
-  
+
   const formValue = this.eventForm.getRawValue();
+  const desc: string = formValue.description || '';
+  const sectors: string[] = formValue.targetSector || [];
+  const stages: string[] = formValue.targetStage || [];
+
   const payload = {
-    title: formValue.title || '',
-    description: formValue.description || '',
     type: formValue.type,
-    startDate: formValue.startDate,
-    endDate: formValue.endDate || undefined,
     locationType: formValue.locationType,
-    location: formValue.location || '',
-    address: formValue.address || '',
-    latitude: formValue.latitude || null,
-    longitude: formValue.longitude || null,
+    startDate: formValue.startDate,
     ticketPrice: formValue.ticketPrice || null,
     capacityMax: formValue.capacityMax || 50,
-    coverImageUrl: formValue.coverImageUrl || '',
-    targetSector: formValue.targetSector || [],
-    targetStage: formValue.targetStage || []
+    speakerCount: this.speakers.length,
+    programSlotsCount: this.program.length,
+    sectorCount: sectors.length,
+    stageCount: stages.length,
+    descriptionLength: desc.length,
   };
-  
+
   this.predictionService.analyzeEvent?.(payload)?.subscribe?.({
-    next: (result: any) => { 
-      this.fullAnalysis = result; 
-      this.predictingEvent = false; 
-      this.cdr.markForCheck(); 
+    next: (result: any) => {
+      this.fullAnalysis = result;
+      this.predictingEvent = false;
+      this.cdr.markForCheck();
     },
-    error: () => { 
-      this.predictionError = 'Prediction failed.'; 
-      this.predictingEvent = false; 
-      this.cdr.markForCheck(); 
+    error: () => {
+      this.predictionError = 'Prediction failed.';
+      this.predictingEvent = false;
+      this.cdr.markForCheck();
     },
   });
 }
@@ -634,23 +748,23 @@ protected predictSelectedEvent(): void {
   this.detailsPredictionError = '';
   this.detailsRegistrationPrediction = null;
   this.detailsSuccessPrediction = null;
-  
+
+  const ev = this.selectedEvent;
+  const desc: string = ev.description || '';
+  const sectors: string[] = ev.targetSector || [];
+  const stages: string[] = ev.targetStage || [];
+
   const payload = {
-    title: this.selectedEvent.title || '',
-    description: this.selectedEvent.description || '',
-    type: this.selectedEvent.type,
-    startDate: this.selectedEvent.startDate,
-    endDate: this.selectedEvent.endDate || undefined,
-    locationType: this.selectedEvent.locationType,
-    location: this.selectedEvent.location || '',
-    address: (this.selectedEvent as any).address || '',
-    latitude: this.selectedEvent.latitude || null,
-    longitude: this.selectedEvent.longitude || null,
-    ticketPrice: this.selectedEvent.ticketPrice || null,
-    capacityMax: this.selectedEvent.capacityMax || 50,
-    coverImageUrl: this.selectedEvent.coverImageUrl || '',
-    targetSector: this.selectedEvent.targetSector || [],
-    targetStage: this.selectedEvent.targetStage || []
+    type: ev.type,
+    locationType: ev.locationType,
+    startDate: ev.startDate,
+    ticketPrice: ev.ticketPrice || null,
+    capacityMax: ev.capacityMax || 50,
+    speakerCount: this.speakers.length,
+    programSlotsCount: this.program.length,
+    sectorCount: sectors.length,
+    stageCount: stages.length,
+    descriptionLength: desc.length,
   };
   
   this.predictionService.analyzeEvent?.(payload)?.subscribe?.({
@@ -830,9 +944,22 @@ protected lookupAttendee(): void {
   if (!this.selectedEvent || !this.checkInInput.trim()) return;
   this.lookupResult = null;
   this.lookupError = '';
-  this.lookupError = 'Attendee lookup is currently unavailable. Please check in manually.';
+
+  const q = this.checkInInput.trim().toLowerCase();
+
+  const match = this.registrations.find((r) => {
+    const ticketFull = (r.ticketNumber ?? '').toLowerCase();
+    const ticketShort = ticketFull.substring(0, 8);
+    const name = (r.userName ?? '').toLowerCase();
+    return ticketFull === q || ticketShort === q || name.includes(q);
+  });
+
+  if (match) {
+    this.lookupResult = match;
+  } else {
+    this.lookupError = 'No attendee found matching "' + this.checkInInput.trim() + '".';
+  }
   this.cdr.markForCheck();
-  return;
 }
 
   protected checkInFromLookup(): void {
@@ -1020,6 +1147,22 @@ protected lookupAttendee(): void {
     this.registrationService.checkIn(registration.id).subscribe({
       next: () => { this.successMessage = 'Participant checked in.'; this.cdr.markForCheck(); if (this.selectedEvent) this.loadRegistrations(this.selectedEvent.id); },
       error: () => { this.errorMessage = 'Failed to check in participant.'; this.cdr.markForCheck(); },
+    });
+  }
+
+  protected approveRegistration(registration: EventRegistration): void {
+    this.clearMessages();
+    this.registrationService.approve(registration.id).subscribe({
+      next: () => { this.successMessage = `Registration for ${registration.userName || 'user'} approved.`; this.cdr.markForCheck(); if (this.selectedEvent) this.loadRegistrations(this.selectedEvent.id); },
+      error: () => { this.errorMessage = 'Failed to approve registration.'; this.cdr.markForCheck(); },
+    });
+  }
+
+  protected rejectRegistration(registration: EventRegistration): void {
+    this.clearMessages();
+    this.registrationService.reject(registration.id).subscribe({
+      next: () => { this.successMessage = `Registration for ${registration.userName || 'user'} rejected.`; this.cdr.markForCheck(); if (this.selectedEvent) this.loadRegistrations(this.selectedEvent.id); },
+      error: () => { this.errorMessage = 'Failed to reject registration.'; this.cdr.markForCheck(); },
     });
   }
 
