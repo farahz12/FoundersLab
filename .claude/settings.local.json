@@ -4,7 +4,9 @@
       "Bash(find . -name \"*.ts\" -type f -exec grep -l \"hover:bg-gray-50[^0-9]\" {})",
       "Bash(xargs -I{} grep \"hover:bg-gray-50\" {})",
       "Bash(find /Users/slimane/FoundersLab -maxdepth 2 -name tailwind.config.* -type f)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npm start *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4200/auth/login)"
     ]
   }
 }

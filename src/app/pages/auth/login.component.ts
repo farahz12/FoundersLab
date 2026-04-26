@@ -1,8 +1,21 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { Router } from '@angular/router';
+import { provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff, lucideMail } from '@ng-icons/lucide';
+import {
+  animate,
+  query,
+  stagger,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -10,64 +23,38 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideIcons({ lucideMail, lucideEye, lucideEyeOff })],
-  template: `
-    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form-stack">
-      <div>
-        <h1 class="text-2xl font-bold mb-2" style="color:var(--text-primary);">Sign In</h1>
-        <p class="text-sm" style="color:var(--text-muted);">Authenticate against the merged user service.</p>
-      </div>
-
-      @if (errorMessage) {
-        <div class="rounded-lg px-3 py-2 text-sm" style="background:var(--badge-red-bg); color:var(--badge-red-text);">
-          {{ errorMessage }}
-        </div>
-      }
-
-      <label class="auth-field">
-        <span>Email</span>
-        <div class="auth-input-shell">
-          <ng-icon name="lucideMail" [size]="'16'" />
-          <input formControlName="email" type="email" placeholder="you@example.com" autocomplete="email" />
-        </div>
-      </label>
-
-      <label class="auth-field">
-        <span>Password</span>
-        <div class="auth-input-shell auth-input-shell--with-action">
-          <input formControlName="password" [type]="showPassword() ? 'text' : 'password'" placeholder="••••••••" autocomplete="current-password" />
-          <button type="button" class="auth-input-action" (click)="showPassword.set(!showPassword())">
-            <ng-icon [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" [size]="'16'" />
-          </button>
-        </div>
-      </label>
-
-      <button type="submit" class="auth-submit" [disabled]="form.invalid || isSubmitting">
-        {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
-      </button>
-
-      <p class="text-sm" style="color:var(--text-muted);">
-        Need an account?
-        <a routerLink="/auth/signup" style="color:var(--text-primary); text-decoration:underline; text-underline-offset:2px;">Create one</a>
-      </p>
-    </form>
-  `,
+  animations: [
+    trigger('formReveal', [
+      transition(':enter', [
+        query(
+          '.auth-field-group, .auth-remember-row, .auth-btn-primary, .auth-divider, .auth-btn-social',
+          [
+            style({ opacity: 0, transform: 'translateY(10px)' }),
+            stagger(55, [
+              animate('300ms ease', style({ opacity: 1, transform: 'translateY(0)' })),
+            ]),
+          ],
+          { optional: true },
+        ),
+      ]),
+    ]),
+  ],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css',
 })
 export class LoginComponent {
-  protected readonly showPassword = signal(false);
-  protected readonly form: FormGroup;
-  protected isSubmitting = false;
-  protected errorMessage = '';
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly authService: AuthService,
-    private readonly router: Router,
-  ) {
-    this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
-    });
-  }
+  protected readonly showPassword = signal(false);
+  protected readonly isSubmitting = signal(false);
+  protected readonly errorMessage = signal('');
+
+  protected readonly form: FormGroup = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  });
 
   protected async submit(): Promise<void> {
     if (this.form.invalid) {
@@ -75,16 +62,19 @@ export class LoginComponent {
       return;
     }
 
-    this.isSubmitting = true;
-    this.errorMessage = '';
+    this.isSubmitting.set(true);
+    this.errorMessage.set('');
 
     try {
       await this.authService.login(this.form.getRawValue());
       await this.router.navigateByUrl(this.authService.getPostAuthRedirectPath());
-    } catch (error: any) {
-      this.errorMessage = error?.error?.message || error?.error?.error || 'Sign-in failed.';
+    } catch (error: unknown) {
+      const err = error as { error?: { message?: string; error?: string } };
+      this.errorMessage.set(
+        err?.error?.message ?? err?.error?.error ?? 'Sign-in failed. Please try again.',
+      );
     } finally {
-      this.isSubmitting = false;
+      this.isSubmitting.set(false);
     }
   }
 }

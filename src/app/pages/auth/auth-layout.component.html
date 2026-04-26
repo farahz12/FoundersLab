@@ -1,0 +1,74 @@
+<div class="auth-shell">
+
+  <!-- ══ LEFT — form card ══ -->
+  <div class="auth-form-panel">
+    <div class="auth-card" @cardEntrance>
+
+      <!-- Logo row -->
+      <div class="auth-card__logo">
+        <img src="colour.png" alt="FoundersLab" class="auth-card__logo-mark" />
+        <span class="auth-card__logo-name">FoundersLab</span>
+      </div>
+
+      <!-- Heading block -->
+      <div class="auth-card__top">
+        <h1 class="auth-card__heading">
+          @if (isLogin()) {
+            Welcome back, Founder!
+          } @else {
+            Join FoundersLab
+          }
+        </h1>
+        <p class="auth-card__subtext">
+          @if (isLogin()) {
+            We're happy to see you again
+          } @else {
+            Start your founder journey today
+          }
+        </p>
+      </div>
+
+      <!-- Tab switcher -->
+      <nav class="auth-card__tabs" aria-label="Sign in or sign up">
+        <a
+          class="auth-card__tab"
+          [class.auth-card__tab--active]="isLogin()"
+          routerLink="/auth/login"
+          [attr.aria-current]="isLogin() ? 'page' : null"
+        >Sign in</a>
+        <a
+          class="auth-card__tab"
+          [class.auth-card__tab--active]="!isLogin()"
+          routerLink="/auth/signup"
+          [attr.aria-current]="!isLogin() ? 'page' : null"
+        >Sign up</a>
+      </nav>
+
+      <!-- Route outlet: LoginComponent or SignupComponent -->
+      <router-outlet />
+
+    </div>
+  </div>
+
+  <!-- ══ RIGHT — animated decorative panel ══ -->
+  <aside class="auth-panel" aria-hidden="true">
+    <div class="auth-panel__logo">
+      <img src="white.png" alt="" class="auth-panel__logo-img" />
+      <span class="auth-panel__logo-name">FoundersLab</span>
+    </div>
+
+    <div class="auth-panel__blob auth-panel__blob--1"></div>
+    <div class="auth-panel__blob auth-panel__blob--2"></div>
+    <div class="auth-panel__blob auth-panel__blob--3"></div>
+    <div class="auth-panel__blob auth-panel__blob--4"></div>
+
+    <div class="auth-panel__tagline">
+      <p class="auth-panel__label">Built for Founders</p>
+      <p class="auth-panel__quote">
+        We help startups accelerate growth through mentoring,
+        funding, and a powerful community network.
+      </p>
+    </div>
+  </aside>
+
+</div>
