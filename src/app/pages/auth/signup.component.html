@@ -1,65 +1,46 @@
-<form [formGroup]="form" (ngSubmit)="submit()" [@formReveal] novalidate class="auth-form-body">
+<form [formGroup]="form" (ngSubmit)="submit()" [@formEnter] novalidate>
 
   @if (errorMessage()) {
     <div class="auth-error" role="alert">{{ errorMessage() }}</div>
   }
 
-  <!-- First name + Last name (2-column grid) -->
-  <div class="auth-name-grid">
-    <div class="auth-field-group">
-      <label class="auth-field-label" for="signup-name">First name</label>
-      <div class="auth-input-wrap">
-        <input
-          id="signup-name"
-          formControlName="name"
-          type="text"
-          placeholder="Jane"
-          autocomplete="given-name"
-          class="auth-input"
-          [class.auth-input--error]="form.get('name')?.invalid && form.get('name')?.touched"
-          aria-describedby="signup-name-err"
-        />
-      </div>
-      @if (form.get('name')?.invalid && form.get('name')?.touched) {
-        <p id="signup-name-err" class="auth-field-error" role="alert">First name is required.</p>
-      }
-    </div>
-
-    <div class="auth-field-group">
-      <label class="auth-field-label" for="signup-prenom">Last name</label>
-      <div class="auth-input-wrap">
-        <input
-          id="signup-prenom"
-          formControlName="prenom"
-          type="text"
-          placeholder="Doe"
-          autocomplete="family-name"
-          class="auth-input"
-          [class.auth-input--error]="form.get('prenom')?.invalid && form.get('prenom')?.touched"
-          aria-describedby="signup-prenom-err"
-        />
-      </div>
-      @if (form.get('prenom')?.invalid && form.get('prenom')?.touched) {
-        <p id="signup-prenom-err" class="auth-field-error" role="alert">Last name is required.</p>
-      }
-    </div>
+  <!-- Full name -->
+  <div class="auth-field-group">
+    <label class="auth-field-label" for="signup-fullname">Full Name</label>
+    <input
+      id="signup-fullname"
+      formControlName="fullName"
+      type="text"
+      placeholder="Jane Doe"
+      autocomplete="name"
+      class="auth-input"
+      [class.auth-input--error]="form.get('fullName')?.invalid && form.get('fullName')?.touched"
+      aria-describedby="signup-name-err"
+    />
+    @if (form.get('fullName')?.invalid && form.get('fullName')?.touched) {
+      <p id="signup-name-err" class="auth-field-error" role="alert">
+        @if (form.get('fullName')?.hasError('required')) {
+          Full name is required.
+        } @else if (form.get('fullName')?.hasError('minlength')) {
+          Please enter your full name.
+        }
+      </p>
+    }
   </div>
 
   <!-- Email -->
   <div class="auth-field-group">
     <label class="auth-field-label" for="signup-email">Email</label>
-    <div class="auth-input-wrap">
-      <input
-        id="signup-email"
-        formControlName="email"
-        type="email"
-        placeholder="you@example.com"
-        autocomplete="email"
-        class="auth-input"
-        [class.auth-input--error]="form.get('email')?.invalid && form.get('email')?.touched"
-        aria-describedby="signup-email-err"
-      />
-    </div>
+    <input
+      id="signup-email"
+      formControlName="email"
+      type="email"
+      placeholder="you@example.com"
+      autocomplete="email"
+      class="auth-input"
+      [class.auth-input--error]="form.get('email')?.invalid && form.get('email')?.touched"
+      aria-describedby="signup-email-err"
+    />
     @if (form.get('email')?.invalid && form.get('email')?.touched) {
       <p id="signup-email-err" class="auth-field-error" role="alert">
         Please enter a valid email address.
@@ -87,7 +68,7 @@
         (click)="showPassword.set(!showPassword())"
         [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
       >
-        <ng-icon [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="15" />
+        <ng-icon [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="16" />
       </button>
     </div>
     @if (form.get('password')?.invalid && form.get('password')?.touched) {
@@ -101,20 +82,20 @@
     }
   </div>
 
-  <!-- Confirm password -->
+  <!-- Confirm Password -->
   <div class="auth-field-group">
-    <label class="auth-field-label" for="signup-confirm">Confirm password</label>
+    <label class="auth-field-label" for="signup-confirm">Confirm Password</label>
     <div class="auth-input-wrap">
       <input
         id="signup-confirm"
         formControlName="confirmPassword"
         [type]="showConfirm() ? 'text' : 'password'"
-        placeholder="Repeat your password"
+        placeholder="Re-enter your password"
         autocomplete="new-password"
         class="auth-input auth-input--with-action"
         [class.auth-input--error]="
           (form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched) ||
-          (form.hasError('passwordMismatch') && form.touched)
+          (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched)
         "
         aria-describedby="signup-confirm-err"
       />
@@ -122,23 +103,27 @@
         type="button"
         class="auth-input-action"
         (click)="showConfirm.set(!showConfirm())"
-        [attr.aria-label]="showConfirm() ? 'Hide password' : 'Show password'"
+        [attr.aria-label]="showConfirm() ? 'Hide confirm password' : 'Show confirm password'"
       >
-        <ng-icon [name]="showConfirm() ? 'lucideEyeOff' : 'lucideEye'" size="15" />
+        <ng-icon [name]="showConfirm() ? 'lucideEyeOff' : 'lucideEye'" size="16" />
       </button>
     </div>
-    @if (form.hasError('passwordMismatch') && form.touched) {
+    @if (form.get('confirmPassword')?.hasError('required') && form.get('confirmPassword')?.touched) {
+      <p id="signup-confirm-err" class="auth-field-error" role="alert">
+        Please confirm your password.
+      </p>
+    } @else if (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched) {
       <p id="signup-confirm-err" class="auth-field-error" role="alert">
         Passwords do not match.
       </p>
     }
   </div>
 
-  <!-- Submit -->
+  <!-- CTA -->
   <button type="submit" class="auth-btn-primary" [disabled]="isSubmitting()">
     @if (isSubmitting()) {
       <span class="auth-spinner" aria-hidden="true"></span>
-      Creating account…
+      <span>Creating account…</span>
     } @else {
       Create account
     }

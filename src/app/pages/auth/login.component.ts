@@ -10,8 +10,6 @@ import { provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff, lucideMail } from '@ng-icons/lucide';
 import {
   animate,
-  query,
-  stagger,
   style,
   transition,
   trigger,
@@ -24,17 +22,12 @@ import { AuthService } from '../../core/services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideIcons({ lucideMail, lucideEye, lucideEyeOff })],
   animations: [
-    trigger('formReveal', [
-      transition(':enter', [
-        query(
-          '.auth-field-group, .auth-remember-row, .auth-btn-primary, .auth-divider, .auth-btn-social',
-          [
-            style({ opacity: 0, transform: 'translateY(10px)' }),
-            stagger(55, [
-              animate('300ms ease', style({ opacity: 1, transform: 'translateY(0)' })),
-            ]),
-          ],
-          { optional: true },
+    trigger('formEnter', [
+      transition('void => *', [
+        style({ opacity: 0, transform: 'translateX(16px)' }),
+        animate(
+          '350ms cubic-bezier(0.16, 1, 0.3, 1)',
+          style({ opacity: 1, transform: 'translateX(0)' }),
         ),
       ]),
     ]),

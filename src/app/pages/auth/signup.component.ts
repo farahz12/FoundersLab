@@ -4,14 +4,18 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff } from '@ng-icons/lucide';
 import {
   animate,
-  query,
-  stagger,
   style,
   transition,
   trigger,
@@ -31,17 +35,12 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideIcons({ lucideEye, lucideEyeOff })],
   animations: [
-    trigger('formReveal', [
-      transition(':enter', [
-        query(
-          '.auth-field-group, .auth-btn-primary',
-          [
-            style({ opacity: 0, transform: 'translateY(10px)' }),
-            stagger(55, [
-              animate('300ms ease', style({ opacity: 1, transform: 'translateY(0)' })),
-            ]),
-          ],
-          { optional: true },
+    trigger('formEnter', [
+      transition('void => *', [
+        style({ opacity: 0, transform: 'translateX(16px)' }),
+        animate(
+          '350ms cubic-bezier(0.16, 1, 0.3, 1)',
+          style({ opacity: 1, transform: 'translateX(0)' }),
         ),
       ]),
     ]),
@@ -61,8 +60,7 @@ export class SignupComponent {
 
   protected readonly form: FormGroup = this.fb.group(
     {
-      name: ['', Validators.required],
-      prenom: ['', Validators.required],
+      fullName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
@@ -80,8 +78,13 @@ export class SignupComponent {
     this.errorMessage.set('');
 
     try {
-      const { confirmPassword: _confirm, ...payload } = this.form.getRawValue();
-      await this.authService.register(payload);
+      const { fullName, email, password } = this.form.getRawValue();
+      const trimmed = (fullName as string).trim();
+      const spaceIdx = trimmed.indexOf(' ');
+      const name = spaceIdx >= 0 ? trimmed.slice(0, spaceIdx) : trimmed;
+      const prenom = spaceIdx >= 0 ? trimmed.slice(spaceIdx + 1) : '';
+
+      await this.authService.register({ name, prenom, email, password });
       await this.router.navigateByUrl(this.authService.getPostAuthRedirectPath());
     } catch (error: unknown) {
       const err = error as { error?: { message?: string; error?: string } };

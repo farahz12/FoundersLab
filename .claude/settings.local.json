@@ -6,7 +6,8 @@
       "Bash(find /Users/slimane/FoundersLab -maxdepth 2 -name tailwind.config.* -type f)",
       "Bash(npx tsc *)",
       "Bash(npm start *)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4200/auth/login)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4200/auth/login)",
+      "Bash(npm run *)"
     ]
   }
 }

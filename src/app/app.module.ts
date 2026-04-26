@@ -7,6 +7,7 @@ import { NgIconComponent } from '@ng-icons/core';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmProgressImports } from '@spartan-ng/helm/progress';
 import { App } from './app';
+import { ShaderBackgroundComponent } from './shared/components/shader-background/shader-background.component';
 import { AppRoutingModule } from './app-routing.module';
 import { LayoutComponent } from './layout/layout.component';
 import { AuthLayoutComponent } from './pages/auth/auth-layout.component';
@@ -59,6 +60,7 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     ReactiveFormsModule,
     AppRoutingModule,
     NgIconComponent,
+    ShaderBackgroundComponent,
     ...HlmBadgeImports,
     ...HlmProgressImports,
   ],

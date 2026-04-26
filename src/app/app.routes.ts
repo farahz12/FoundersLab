@@ -37,7 +37,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: SignupComponent },
+      { path: 'register', component: SignupComponent },
     ],
   },
   {

@@ -1,12 +1,1 @@
-/* Two-column grid for first name / last name */
-.auth-name-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.875rem;
-}
-
-@media (max-width: 400px) {
-  .auth-name-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Signup uses shared auth-form styles from styles.css */
